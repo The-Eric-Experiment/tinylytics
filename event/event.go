@@ -1,6 +1,9 @@
 package event
 
 import (
+	"fmt"
+	"os"
+	"os/exec"
 	"time"
 	"tinylytics/db"
 	"tinylytics/geo"
@@ -36,10 +39,11 @@ func ProcessEvent(item *ClientInfo) {
 	database.Connect(databaseFileName)
 	defer database.Close()
 
-	// c := exec.Command("clear")
-	// 	c.Stdout = os.Stdout
-	// 	c.Run()
+	c := exec.Command("clear")
+	c.Stdout = os.Stdout
+	c.Run()
 	// fmt.Println(eventQueue.GetSize())
+	fmt.Println("processing")
 
 	userIdent := GetSessionUserIdent(item)
 

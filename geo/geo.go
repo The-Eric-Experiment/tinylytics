@@ -10,24 +10,13 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"tinylytics/helpers"
 
 	"github.com/oschwald/geoip2-golang"
 )
 
 var url = "https://raw.githubusercontent.com/GitSquared/node-geolite2-redist/master/redist/GeoLite2-Country.tar.gz"
 var destinationFile = "data/GeoLite2-Country.tar.gz"
-
-// exists returns whether the given file or directory exists
-func exists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
-}
 
 func extractTarGz(gzipStream io.Reader) {
 	uncompressedStream, err := gzip.NewReader(gzipStream)
@@ -63,32 +52,6 @@ func extractTarGz(gzipStream io.Reader) {
 			}
 			outFile.Close()
 		}
-
-		// 	switch header.Typeflag {
-		// 	case tar.TypeDir:
-		// 		if err := os.Mkdir(header.Name, 0755); err != nil {
-		// 			log.Fatalf("ExtractTarGz: Mkdir() failed: %s", err.Error())
-		// 		}
-		// 	case tar.TypeReg:
-		// 		nm := header.Name
-
-		// 		fmt.Println(nm)
-		// 		outFile, err := os.Create(nm)
-		// 		if err != nil {
-		// 			log.Fatalf("ExtractTarGz: Create() failed: %s", err.Error())
-		// 		}
-		// 		if _, err := io.Copy(outFile, tarReader); err != nil {
-		// 			log.Fatalf("ExtractTarGz: Copy() failed: %s", err.Error())
-		// 		}
-		// 		outFile.Close()
-
-		// 	default:
-		// 		log.Fatalf(
-		// 			"ExtractTarGz: uknown type: %s in %s",
-		// 			header.Typeflag,
-		// 			header.Name)
-		// 	}
-
 	}
 }
 
@@ -114,7 +77,7 @@ func downloadGeoLite(filepath string) error {
 }
 
 func Initialize() {
-	e, _ := exists(destinationFile)
+	e, _ := helpers.Exists(destinationFile)
 	if e {
 		fmt.Println("Aready exists, geolite")
 		return

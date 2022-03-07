@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"runtime"
 	conf "tinylytics/config"
 	"tinylytics/db"
@@ -9,6 +10,7 @@ import (
 	"tinylytics/geo"
 	"tinylytics/helpers"
 	"tinylytics/routes"
+	"tinylytics/ua"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,6 +34,7 @@ func initializeDatabases() {
 func init() {
 	conf.LoadConfig("config.yaml")
 
+	ua.Initialize()
 	geo.Initialize()
 
 	initializeDatabases()
@@ -42,6 +45,18 @@ func init() {
 func main() {
 	router := gin.Default()
 	router.POST("/api/event", routes.PostEvent(&eventQueue))
+	router.GET("/ua", func(c *gin.Context) {
+		uagent := c.Request.Header.Get("User-Agent")
+		result := ua.ParseUA(uagent)
+		router.LoadHTMLGlob("*.html")
+		c.HTML(http.StatusOK, "ua.html", gin.H{
+			"UA":             uagent,
+			"Browser":        result.Browser,
+			"BrowserVersion": result.BrowserVersion,
+			"OS":             result.OS,
+			"OSVersion":      result.OSVersion,
+		})
+	})
 
 	eventQueue.Listen(event.ProcessEvent)
 
