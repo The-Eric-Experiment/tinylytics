@@ -6,7 +6,6 @@ import (
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 type Database struct {
@@ -15,7 +14,7 @@ type Database struct {
 
 func (d *Database) Connect(file string) {
 	db, err := gorm.Open(sqlite.Open("file:"+file+"?cache=shared&mode=rwc&_journal_mode=WAL"), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Silent),
+		// Logger: logger.Default.LogMode(logger.Silent),
 	})
 
 	if err != nil {
@@ -68,4 +67,11 @@ func (d *Database) SaveEvent(item *UserEvent, sessionId string) *UserEvent {
 	item.Session = UserSession{ID: sessionId}
 	d.db.Create(&item)
 	return item
+}
+
+func (d *Database) GetSessions() int64 {
+	var count int64
+	d.db.Model(&UserSession{}).Count(&count)
+
+	return count
 }

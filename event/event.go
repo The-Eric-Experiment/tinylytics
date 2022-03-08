@@ -2,8 +2,6 @@ package event
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 	"time"
 	"tinylytics/db"
 	"tinylytics/geo"
@@ -39,11 +37,11 @@ func ProcessEvent(item *ClientInfo) {
 	database.Connect(databaseFileName)
 	defer database.Close()
 
-	c := exec.Command("clear")
-	c.Stdout = os.Stdout
-	c.Run()
+	// c := exec.Command("clear")
+	// c.Stdout = os.Stdout
+	// c.Run()
 	// fmt.Println(eventQueue.GetSize())
-	fmt.Println("processing")
+	fmt.Println("processing", item)
 
 	userIdent := GetSessionUserIdent(item)
 
@@ -55,17 +53,21 @@ func ProcessEvent(item *ClientInfo) {
 
 	if session == nil {
 		session = database.StartUserSession(&db.UserSession{
-			ID:             GetSessionId(item, item.Time),
-			UserIdent:      userIdent,
-			Browser:        result.Browser,
-			BrowserVersion: result.BrowserVersion,
-			OS:             result.OS,
-			OSVersion:      result.OSVersion,
-			Country:        country,
-			SessionStart:   item.Time,
-			SessionEnd:     item.Time,
-			UserAgent:      item.UserAgent,
-			Events:         0,
+			ID:           GetSessionId(item, item.Time),
+			UserIdent:    userIdent,
+			Browser:      result.Browser,
+			BrowserMajor: result.BrowserMajor,
+			BrowserMinor: result.BrowserMinor,
+			BrowserPatch: result.BrowserPatch,
+			OS:           result.OS,
+			OSMajor:      result.OSMajor,
+			OSMinor:      result.OSMinor,
+			OSPatch:      result.OSPatch,
+			Country:      country,
+			SessionStart: item.Time,
+			SessionEnd:   item.Time,
+			UserAgent:    item.UserAgent,
+			Events:       0,
 		})
 	}
 

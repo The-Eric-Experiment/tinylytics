@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"runtime"
 	conf "tinylytics/config"
 	"tinylytics/db"
@@ -45,22 +44,11 @@ func init() {
 func main() {
 	router := gin.Default()
 	router.POST("/api/event", routes.PostEvent(&eventQueue))
-	router.GET("/ua", func(c *gin.Context) {
-		uagent := c.Request.Header.Get("User-Agent")
-		result := ua.ParseUA(uagent)
-		router.LoadHTMLGlob("*.html")
-		c.HTML(http.StatusOK, "ua.html", gin.H{
-			"UA":             uagent,
-			"Browser":        result.Browser,
-			"BrowserVersion": result.BrowserVersion,
-			"OS":             result.OS,
-			"OSVersion":      result.OSVersion,
-		})
-	})
+	router.GET("/analytics/summaries", routes.GetSummaries)
 
 	eventQueue.Listen(event.ProcessEvent)
 
-	router.Run("localhost:8008")
+	router.Run()
 }
 
 // PrintMemUsage outputs the current, total and OS memory being used. As well as the number

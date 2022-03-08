@@ -1,10 +1,11 @@
 package event
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path"
+	"tinylytics/config"
+	"tinylytics/constants"
 
 	"github.com/joncrlsn/dque"
 )
@@ -69,14 +70,12 @@ func (q *EventQueue) Connect() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	qDir := path.Join(wd, "data")
-	fmt.Println(qDir)
+	qDir := path.Join(wd, config.Config.DataFolder)
 
-	qName := "item-queue"
 	segmentSize := 50
 
 	// Create a new queue with segment size of 50
-	s, err := dque.NewOrOpen(qName, qDir, segmentSize, ItemBuilder)
+	s, err := dque.NewOrOpen(constants.EVENT_QUEUE_NAME, qDir, segmentSize, ItemBuilder)
 	if err != nil {
 		log.Fatal("Error creating new dque ", err)
 	}

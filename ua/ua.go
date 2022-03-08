@@ -6,23 +6,25 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"tinylytics/constants"
 	"tinylytics/helpers"
 
 	"github.com/ua-parser/uap-go/uaparser"
 )
 
-var url = "https://raw.githubusercontent.com/ericmackrodt/uap-core/master/regexes.yaml"
-var destinationFile = "data/regexes.yaml"
-
 type UA struct {
-	Browser        string `json:"browser"`
-	BrowserVersion string `json:"browserVersion"`
-	OS             string `json:"os"`
-	OSVersion      string `json:"osVersion"`
+	Browser      string `json:"browser"`
+	BrowserMajor string `json:"browserMajor"`
+	BrowserMinor string `json:"browserMinor"`
+	BrowserPatch string `json:"browserPatch"`
+	OS           string `json:"os"`
+	OSMajor      string `json:"osMajor"`
+	OSMinor      string `json:"osMinor"`
+	OSPatch      string `json:"osPatch"`
 }
 
 func ParseUA(uagent string) UA {
-	parser, err := uaparser.New("./data/regexes.yaml")
+	parser, err := uaparser.New(helpers.GetDataPath(constants.UA_REGEX_FILE_NAME))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,16 +32,20 @@ func ParseUA(uagent string) UA {
 	client := parser.Parse(uagent)
 
 	return UA{
-		Browser:        client.UserAgent.Family,
-		BrowserVersion: client.UserAgent.Major,
-		OS:             client.Os.Family,
-		OSVersion:      client.Os.Major,
+		Browser:      client.UserAgent.Family,
+		BrowserMajor: client.UserAgent.Major,
+		BrowserMinor: client.UserAgent.Minor,
+		BrowserPatch: client.UserAgent.Patch,
+		OS:           client.Os.Family,
+		OSMajor:      client.Os.Major,
+		OSMinor:      client.Os.Minor,
+		OSPatch:      client.Os.Patch,
 	}
 }
 
 func downloadUARegex(filepath string) error {
 	// Get the data
-	resp, err := http.Get(url)
+	resp, err := http.Get(constants.UA_DOWNLOAD_URL)
 	if err != nil {
 		return err
 	}
@@ -58,7 +64,7 @@ func downloadUARegex(filepath string) error {
 }
 
 func Initialize() {
-	e, _ := helpers.Exists(destinationFile)
+	e, _ := helpers.Exists(helpers.GetDataPath(constants.UA_REGEX_FILE_NAME))
 	if e {
 		fmt.Println("Aready exists, UA Regex")
 		return
@@ -66,7 +72,7 @@ func Initialize() {
 
 	fmt.Println("Downloading UA Regex")
 
-	err := downloadUARegex(destinationFile)
+	err := downloadUARegex(helpers.GetDataPath(constants.UA_REGEX_FILE_NAME))
 
 	if err != nil {
 		panic(err)

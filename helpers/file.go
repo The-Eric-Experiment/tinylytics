@@ -1,6 +1,10 @@
 package helpers
 
-import "os"
+import (
+	"os"
+	"path"
+	"tinylytics/config"
+)
 
 // exists returns whether the given file or directory exists
 func Exists(path string) (bool, error) {
@@ -12,4 +16,8 @@ func Exists(path string) (bool, error) {
 		return false, nil
 	}
 	return false, err
+}
+
+func GetDataPath(rest string) string {
+	return path.Join(config.Config.DataFolder, rest)
 }

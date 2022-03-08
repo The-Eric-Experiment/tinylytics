@@ -10,13 +10,11 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"tinylytics/constants"
 	"tinylytics/helpers"
 
 	"github.com/oschwald/geoip2-golang"
 )
-
-var url = "https://raw.githubusercontent.com/GitSquared/node-geolite2-redist/master/redist/GeoLite2-Country.tar.gz"
-var destinationFile = "data/GeoLite2-Country.tar.gz"
 
 func extractTarGz(gzipStream io.Reader) {
 	uncompressedStream, err := gzip.NewReader(gzipStream)
@@ -41,7 +39,7 @@ func extractTarGz(gzipStream io.Reader) {
 		fmt.Println(path.Ext(nm))
 		if header.Typeflag == tar.TypeReg && path.Ext(nm) == ".mmdb" {
 			file := path.Base(nm)
-			destFile := path.Join("data", file)
+			destFile := helpers.GetDataPath(file)
 
 			outFile, err := os.Create(destFile)
 			if err != nil {
@@ -58,7 +56,7 @@ func extractTarGz(gzipStream io.Reader) {
 func downloadGeoLite(filepath string) error {
 
 	// Get the data
-	resp, err := http.Get(url)
+	resp, err := http.Get(constants.GEOLITE_DOWNLOAD_URL)
 	if err != nil {
 		return err
 	}
@@ -77,7 +75,7 @@ func downloadGeoLite(filepath string) error {
 }
 
 func Initialize() {
-	e, _ := helpers.Exists(destinationFile)
+	e, _ := helpers.Exists(helpers.GetDataPath(constants.GEOLITE_ZIPPED_FILE_NAME))
 	if e {
 		fmt.Println("Aready exists, geolite")
 		return
@@ -85,7 +83,7 @@ func Initialize() {
 
 	fmt.Println("Downloading Geolite")
 
-	err := downloadGeoLite(destinationFile)
+	err := downloadGeoLite(helpers.GetDataPath(constants.GEOLITE_ZIPPED_FILE_NAME))
 
 	if err != nil {
 		panic(err)
@@ -93,7 +91,7 @@ func Initialize() {
 
 	fmt.Println("Extracting Geolite")
 
-	r, err := os.Open(destinationFile)
+	r, err := os.Open(helpers.GetDataPath(constants.GEOLITE_ZIPPED_FILE_NAME))
 	if err != nil {
 		fmt.Println("error")
 	}
@@ -103,7 +101,7 @@ func Initialize() {
 }
 
 func GetGeo(ipInput string) string {
-	db, err := geoip2.Open("data/GeoLite2-Country.mmdb")
+	db, err := geoip2.Open(helpers.GetDataPath(constants.GEOLITE_DB_FILE_NAME))
 	if err != nil {
 		log.Fatal(err)
 	}

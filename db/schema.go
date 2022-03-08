@@ -8,17 +8,21 @@ import (
 
 type UserSession struct {
 	gorm.Model
-	ID             string `gorm:"primaryKey"`
-	UserIdent      string `gorm:"index"`
-	Browser        string `gorm:"index"`
-	BrowserVersion string
-	OS             string `gorm:"index"`
-	OSVersion      string
-	Country        string `gorm:"index"`
-	UserAgent      string
-	SessionStart   time.Time
-	SessionEnd     time.Time
-	Events         int64
+	ID           string `gorm:"primaryKey"`
+	UserIdent    string `gorm:"index"`
+	Browser      string `gorm:"index"`
+	BrowserMajor string
+	BrowserMinor string
+	BrowserPatch string
+	OS           string `gorm:"index"`
+	OSMajor      string
+	OSMinor      string
+	OSPatch      string
+	Country      string `gorm:"index"`
+	UserAgent    string
+	SessionStart time.Time
+	SessionEnd   time.Time
+	Events       int64
 }
 
 type UserEvent struct {
