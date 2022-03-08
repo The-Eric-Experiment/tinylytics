@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  tinylytics:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - /:/app/data
+      - /config.yaml:/app/config.yaml
