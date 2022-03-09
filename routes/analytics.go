@@ -12,7 +12,12 @@ import (
 func GetSummaries(c *gin.Context) {
 	domain, _ := c.GetQuery("d")
 
-	dbFile := helpers.GetDatabaseFileName(domain)
+	dbFile, err := helpers.GetDatabaseFileName(domain)
+
+	if err != nil {
+		c.String(http.StatusBadRequest, "", err)
+		return
+	}
 
 	database := db.Database{}
 	database.Connect(dbFile)

@@ -2,7 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
 	"runtime"
+	"tinylytics/config"
 	conf "tinylytics/config"
 	"tinylytics/db"
 	"tinylytics/event"
@@ -25,13 +29,30 @@ func initializeDb(filename string) {
 
 func initializeDatabases() {
 	for _, element := range conf.Config.Websites {
-		filename := helpers.GetDatabaseFileName(element.Domain)
+		filename, err := helpers.GetDatabaseFileName(element.Domain)
+
+		if err != nil {
+			panic(err)
+		}
+
 		initializeDb(filename)
 	}
 }
 
 func init() {
 	conf.LoadConfig("config.yaml")
+
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	newpath := filepath.Join(wd, config.Config.DataFolder)
+	err = os.MkdirAll(newpath, os.ModePerm)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	ua.Initialize()
 	geo.Initialize()

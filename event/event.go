@@ -32,7 +32,10 @@ type EventData struct {
 }
 
 func ProcessEvent(item *ClientInfo) {
-	databaseFileName := helpers.GetDatabaseFileName(item.Domain)
+	databaseFileName, err := helpers.GetDatabaseFileName(item.Domain)
+	if err != nil {
+		panic(err)
+	}
 	database := db.Database{}
 	database.Connect(databaseFileName)
 	defer database.Close()

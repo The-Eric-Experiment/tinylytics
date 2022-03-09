@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"errors"
-	"log"
 	"path"
 	conf "tinylytics/config"
 
@@ -15,18 +14,19 @@ func FindWebsite(domain string) (*conf.WebsiteConfig, error) {
 			return &element, nil
 		}
 	}
-	return nil, errors.New("Site not found")
+	return nil, errors.New("site not found")
 }
 
-func GetDatabaseFileName(domain string) string {
+func GetDatabaseFileName(domain string) (string, error) {
 	site, err := FindWebsite(domain)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	nm, _ := uuid.FromBytes([]byte("0d032761-6264-49d4-b099-74219d6d564d"))
 	dbHash := uuid.NewSHA1(nm, []byte(site.Domain)).String()
 
 	filename := dbHash + ".db"
-	return path.Join(conf.Config.DataFolder, filename)
+	filePath := path.Join(conf.Config.DataFolder, filename)
+	return filePath, nil
 }
