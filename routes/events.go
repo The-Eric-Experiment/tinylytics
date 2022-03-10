@@ -30,6 +30,11 @@ func PostEvent(eventQueue *event.EventQueue) func(c *gin.Context) {
 			return
 		}
 
+		if ed.Name != "pageview" {
+			c.String(http.StatusBadRequest, "Only the 'pageview' event is supported at the moment")
+			return
+		}
+
 		if ed.Domain == "" {
 			c.String(http.StatusBadRequest, "No domain was set")
 			return

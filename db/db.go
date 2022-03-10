@@ -1,11 +1,14 @@
 package db
 
 import (
+	"database/sql"
 	"errors"
 	"time"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"gorm.io/gorm/logger"
 )
 
 type Database struct {
@@ -15,6 +18,7 @@ type Database struct {
 func (d *Database) Connect(file string) {
 	db, err := gorm.Open(sqlite.Open("file:"+file+"?cache=shared&mode=rwc&_journal_mode=WAL"), &gorm.Config{
 		// Logger: logger.Default.LogMode(logger.Silent),
+		Logger: logger.Default.LogMode(logger.Info),
 	})
 
 	if err != nil {
@@ -81,4 +85,11 @@ func (d *Database) GetPageViews() int64 {
 	d.db.Model(&UserEvent{}).Where(&UserEvent{Name: "pageview"}).Count(&count)
 
 	return count
+}
+
+func (d *Database) GetBrowsers() (*sql.Rows, error) {
+	q := d.db.Model(&UserSession{}).Select("browser as name, count(browser) as count").Group("browser").Clauses(clause.OrderBy{
+		Expression: clause.Expr{SQL: "count desc", WithoutParentheses: true},
+	})
+	return q.Rows()
 }
