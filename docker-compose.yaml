@@ -1,9 +1,16 @@
 version: "3.9"
 services:
   tinylytics:
+    image: tinylytics
     build:
-      context: .
+      context: ~/tinylytics-runner/_work/tinylytics/tinylytics$
       dockerfile: Dockerfile
+    port: "0.0.0.0:8080:9009"
     volumes:
       - /:/app/data
       - /config.yaml:/app/config.yaml
+    networks:
+      - ericexperiment
+    env_file:
+      - database.env
+    restart: always
