@@ -24,8 +24,10 @@ func GetSummaries(c *gin.Context) {
 	defer database.Close()
 
 	sessions := database.GetSessions()
+	pageViews := database.GetPageViews()
 
 	c.IndentedJSON(http.StatusOK, &analytics.SummaryResponse{
-		Sessions: sessions,
+		Sessions:  sessions,
+		PageViews: pageViews,
 	})
 }

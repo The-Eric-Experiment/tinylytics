@@ -75,3 +75,10 @@ func (d *Database) GetSessions() int64 {
 
 	return count
 }
+
+func (d *Database) GetPageViews() int64 {
+	var count int64
+	d.db.Model(&UserEvent{}).Where(&UserEvent{Name: "pageview"}).Count(&count)
+
+	return count
+}
