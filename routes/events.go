@@ -41,6 +41,7 @@ func PostEvent(eventQueue *event.EventQueue) func(c *gin.Context) {
 		}
 
 		info := &event.ClientInfo{
+			Name:                      ed.Name,
 			UserAgent:                 uagent,
 			IP:                        event.GetIP(c),
 			HostName:                  c.Request.Host,

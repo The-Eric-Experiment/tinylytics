@@ -29,6 +29,7 @@ type UserSession struct {
 type UserEvent struct {
 	gorm.Model
 	ID        string `gorm:"primaryKey"`
+	Name      string `gorm:"index"`
 	Page      string
 	EventTime time.Time
 	SessionID string

@@ -12,6 +12,7 @@ import (
 )
 
 type ClientInfo struct {
+	Name                      string
 	UserAgent                 string
 	HostName                  string
 	Domain                    string
@@ -28,6 +29,7 @@ type ClientInfo struct {
 }
 
 type EventData struct {
+	Name        string `json:"name"`
 	Domain      string `json:"domain"`
 	Page        string `json:"page"`
 	ScreenWidth int64  `json:"screenWidth"`
@@ -85,6 +87,7 @@ func ProcessEvent(item *ClientInfo) {
 	database.SaveEvent(&db.UserEvent{
 		ID:        uuid.NewString(),
 		Page:      item.Page,
+		Name:      item.Name,
 		EventTime: item.Time,
 	}, session.ID)
 }
