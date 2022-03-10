@@ -24,11 +24,13 @@ type ClientInfo struct {
 	IP                        string
 	Referer                   string
 	Time                      time.Time
+	ScreenWidth               int64
 }
 
 type EventData struct {
-	Domain string `json:"domain"`
-	Page   string `json:"page"`
+	Domain      string `json:"domain"`
+	Page        string `json:"page"`
+	ScreenWidth int64  `json:"screenWidth"`
 }
 
 func ProcessEvent(item *ClientInfo) {
@@ -71,6 +73,7 @@ func ProcessEvent(item *ClientInfo) {
 			SessionEnd:   item.Time,
 			UserAgent:    item.UserAgent,
 			Events:       0,
+			ScreenWidth:  item.ScreenWidth,
 		})
 	}
 

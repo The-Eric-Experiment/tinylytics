@@ -53,6 +53,7 @@ func PostEvent(eventQueue *event.EventQueue) func(c *gin.Context) {
 			ClientHintPlatformVersion: chPlatformVersion,
 			Referer:                   event.GetReferer(c),
 			Time:                      time.Now().UTC(),
+			ScreenWidth:               ed.ScreenWidth,
 		}
 
 		eventQueue.Push(info)

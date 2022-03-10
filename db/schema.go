@@ -22,6 +22,7 @@ type UserSession struct {
 	UserAgent    string
 	SessionStart time.Time
 	SessionEnd   time.Time
+	ScreenWidth  int64
 	Events       int64
 }
 
