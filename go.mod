@@ -11,6 +11,7 @@ require (
 	github.com/oschwald/geoip2-golang v1.6.1
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/ua-parser/uap-go v0.0.0-20211112212520-00c877edfe0f
+	github.com/x-way/crawlerdetect v0.2.15 // indirect
 	gorm.io/driver/sqlite v1.3.1 // indirect
 	gorm.io/gorm v1.23.1 // indirect
 )

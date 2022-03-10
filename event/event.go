@@ -9,6 +9,7 @@ import (
 	"tinylytics/ua"
 
 	"github.com/google/uuid"
+	"github.com/x-way/crawlerdetect"
 )
 
 type ClientInfo struct {
@@ -40,6 +41,12 @@ func ProcessEvent(item *ClientInfo) {
 	if err != nil {
 		panic(err)
 	}
+
+	if crawlerdetect.IsCrawler(item.UserAgent) {
+		fmt.Println("crwler detected")
+		return
+	}
+
 	database := db.Database{}
 	database.Connect(databaseFileName)
 	defer database.Close()
