@@ -87,9 +87,24 @@ func (d *Database) GetPageViews() int64 {
 	return count
 }
 
-func (d *Database) GetBrowsers() (*sql.Rows, error) {
-	q := d.db.Model(&UserSession{}).Select("browser as name, count(browser) as count").Group("browser").Clauses(clause.OrderBy{
+func (d *Database) GetBrowsersQuery(filters *QueryFilters) (*sql.Rows, error) {
+	querySelect := "browser as name, count(browser) as count"
+
+	q := d.db.Model(&UserSession{}).Select(querySelect).Group("browser").Clauses(clause.OrderBy{
 		Expression: clause.Expr{SQL: "count desc", WithoutParentheses: true},
 	})
+
+	if filters.Browser != nil {
+		q = q.Where(&UserSession{Browser: *filters.Browser}).Group("browser_major")
+
+		querySelect += ", browser_major"
+		if filters.BrowserMajor != nil {
+			q = q.Where(&UserSession{BrowserMajor: *filters.BrowserMajor}).Group("browser_minor")
+			querySelect += ", browser_minor"
+		}
+	}
+
+	q = q.Select(querySelect)
+
 	return q.Rows()
 }

@@ -35,6 +35,9 @@ func GetSummaries(c *gin.Context) {
 func GetBrowsers(c *gin.Context) {
 	domain, _ := c.GetQuery("d")
 
+	browser, hasBrowser := c.GetQuery("b")
+	browserMajor, hasBrowserMajor := c.GetQuery("bm")
+
 	dbFile, err := helpers.GetDatabaseFileName(domain)
 
 	if err != nil {
@@ -46,7 +49,20 @@ func GetBrowsers(c *gin.Context) {
 	database.Connect(dbFile)
 	defer database.Close()
 
-	rows, err := database.GetBrowsers()
+	var b *string = nil
+	if hasBrowser {
+		b = &browser
+	}
+
+	var bv *string = nil
+	if hasBrowserMajor {
+		bv = &browserMajor
+	}
+
+	rows, err := database.GetBrowsersQuery(&db.QueryFilters{
+		Browser:      b,
+		BrowserMajor: bv,
+	})
 
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Couldn't get browsers")
@@ -56,12 +72,25 @@ func GetBrowsers(c *gin.Context) {
 
 	for rows.Next() {
 		var name string
+		var browserMajor int64
+		var browserMinor int64
 		var count int64
-		rows.Scan(&name, &count)
+
+		if hasBrowser {
+			rows.Scan(&name, &count, &browserMajor)
+
+			if hasBrowserMajor {
+				rows.Scan(&name, &count, &browserMajor, &browserMinor)
+			}
+		} else {
+			rows.Scan(&name, &count)
+		}
 
 		browserList = append(browserList, &analytics.Browser{
-			Name:  name,
-			Count: count,
+			Name:         name,
+			Count:        count,
+			BrowserMajor: browserMajor,
+			BrowserMinor: browserMinor,
 		})
 	}
 

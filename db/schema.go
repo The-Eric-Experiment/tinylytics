@@ -35,3 +35,8 @@ type UserEvent struct {
 	SessionID string
 	Session   UserSession `gorm:"foreignKey:SessionID;references:ID"`
 }
+
+type QueryFilters struct {
+	Browser      *string
+	BrowserMajor *string
+}
