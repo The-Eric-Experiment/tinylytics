@@ -3,8 +3,10 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -87,24 +89,46 @@ func (d *Database) GetPageViews() int64 {
 	return count
 }
 
-func (d *Database) GetBrowsersQuery(filters *QueryFilters) (*sql.Rows, error) {
+func setBrowserFilters(db *gorm.DB, c *gin.Context, querySelect string) *gorm.DB {
+	browser, hasBrowser := c.GetQuery("b")
+	browserVersion, hasBrowserVersion := c.GetQuery("bv")
+
+	if hasBrowser {
+		db = db.Where(&UserSession{Browser: browser}).Group("browser_major")
+		querySelect += ", browser_major"
+
+		if hasBrowserVersion {
+			bver := strings.Split(browserVersion, ".")
+			bmj := bver[0]
+
+			db = db.Where(&UserSession{BrowserMajor: bmj}).Group("browser_minor")
+			querySelect += ", browser_minor"
+			if len(bver) >= 2 {
+				db = db.Where(&UserSession{BrowserMinor: bver[1]}).Group("browser_patch")
+				querySelect += ", browser_patch"
+			}
+
+		}
+
+	}
+
+	db.Select(querySelect)
+
+	return db
+}
+
+func (d *Database) GetBrowsers(c *gin.Context) (*sql.Rows, error) {
 	querySelect := "browser as name, count(browser) as count"
 
 	q := d.db.Model(&UserSession{}).Select(querySelect).Group("browser").Clauses(clause.OrderBy{
 		Expression: clause.Expr{SQL: "count desc", WithoutParentheses: true},
 	})
 
-	if filters.Browser != nil {
-		q = q.Where(&UserSession{Browser: *filters.Browser}).Group("browser_major")
-
-		querySelect += ", browser_major"
-		if filters.BrowserMajor != nil {
-			q = q.Where(&UserSession{BrowserMajor: *filters.BrowserMajor}).Group("browser_minor")
-			querySelect += ", browser_minor"
-		}
-	}
-
-	q = q.Select(querySelect)
+	q = setBrowserFilters(q, c, querySelect)
 
 	return q.Rows()
+}
+
+func (d *Database) Scan(rows *sql.Rows, dest interface{}) error {
+	return d.db.ScanRows(rows, &dest)
 }

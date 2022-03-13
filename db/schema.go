@@ -39,4 +39,5 @@ type UserEvent struct {
 type QueryFilters struct {
 	Browser      *string
 	BrowserMajor *string
+	BrowserMinor *string
 }

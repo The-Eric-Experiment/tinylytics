@@ -8,8 +8,9 @@ type SummaryResponse struct {
 type Browser struct {
 	Name         string `json:"name"`
 	Count        int64  `json:"count"`
-	BrowserMajor int64  `json:"browserMajor"`
-	BrowserMinor int64  `json:"browserMinor"`
+	BrowserMajor *int64 `json:"browserMajor"`
+	BrowserMinor *int64 `json:"browserMinor"`
+	BrowserPatch *int64 `json:"browserPatch"`
 }
 
 type BrowserListResponse struct {

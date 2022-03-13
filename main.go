@@ -65,8 +65,8 @@ func init() {
 func main() {
 	router := gin.Default()
 	router.POST("/api/event", routes.PostEvent(&eventQueue))
-	router.GET("/analytics/summaries", routes.GetSummaries)
-	router.GET("/analytics/browsers", routes.GetBrowsers)
+	router.GET("/analytics/:domain/summaries", routes.GetSummaries)
+	router.GET("/analytics/:domain/browsers", routes.GetBrowsers)
 
 	eventQueue.Listen(event.ProcessEvent)
 

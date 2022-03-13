@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"tinylytics/analytics"
 	"tinylytics/db"
@@ -10,7 +11,7 @@ import (
 )
 
 func GetSummaries(c *gin.Context) {
-	domain, _ := c.GetQuery("d")
+	domain, _ := c.Params.Get("domain")
 
 	dbFile, err := helpers.GetDatabaseFileName(domain)
 
@@ -33,10 +34,7 @@ func GetSummaries(c *gin.Context) {
 }
 
 func GetBrowsers(c *gin.Context) {
-	domain, _ := c.GetQuery("d")
-
-	browser, hasBrowser := c.GetQuery("b")
-	browserMajor, hasBrowserMajor := c.GetQuery("bm")
+	domain, _ := c.Params.Get("domain")
 
 	dbFile, err := helpers.GetDatabaseFileName(domain)
 
@@ -49,20 +47,7 @@ func GetBrowsers(c *gin.Context) {
 	database.Connect(dbFile)
 	defer database.Close()
 
-	var b *string = nil
-	if hasBrowser {
-		b = &browser
-	}
-
-	var bv *string = nil
-	if hasBrowserMajor {
-		bv = &browserMajor
-	}
-
-	rows, err := database.GetBrowsersQuery(&db.QueryFilters{
-		Browser:      b,
-		BrowserMajor: bv,
-	})
+	rows, err := database.GetBrowsers(c)
 
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Couldn't get browsers")
@@ -71,27 +56,13 @@ func GetBrowsers(c *gin.Context) {
 	browserList := make([]*analytics.Browser, 0)
 
 	for rows.Next() {
-		var name string
-		var browserMajor int64
-		var browserMinor int64
-		var count int64
+		var output analytics.Browser
 
-		if hasBrowser {
-			rows.Scan(&name, &count, &browserMajor)
+		database.Scan(rows, &output)
 
-			if hasBrowserMajor {
-				rows.Scan(&name, &count, &browserMajor, &browserMinor)
-			}
-		} else {
-			rows.Scan(&name, &count)
-		}
+		fmt.Println(output)
 
-		browserList = append(browserList, &analytics.Browser{
-			Name:         name,
-			Count:        count,
-			BrowserMajor: browserMajor,
-			BrowserMinor: browserMinor,
-		})
+		browserList = append(browserList, &output)
 	}
 
 	c.IndentedJSON(http.StatusOK, &analytics.BrowserListResponse{
