@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"fmt"
 	"net/http"
 	"tinylytics/analytics"
 	"tinylytics/db"
@@ -24,8 +23,8 @@ func GetSummaries(c *gin.Context) {
 	database.Connect(dbFile)
 	defer database.Close()
 
-	sessions := database.GetSessions()
-	pageViews := database.GetPageViews()
+	sessions := database.GetSessions(c)
+	pageViews := database.GetPageViews(c)
 
 	c.IndentedJSON(http.StatusOK, &analytics.SummaryResponse{
 		Sessions:  sessions,
@@ -59,8 +58,6 @@ func GetBrowsers(c *gin.Context) {
 		var output analytics.Browser
 
 		database.Scan(rows, &output)
-
-		fmt.Println(output)
 
 		browserList = append(browserList, &output)
 	}

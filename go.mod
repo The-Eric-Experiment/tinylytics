@@ -7,6 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.7.7
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/ilyakaznacheev/cleanenv v1.2.6 // indirect
+	github.com/jinzhu/now v1.1.4 // indirect
 	github.com/joncrlsn/dque v0.0.0-20211108142734-c2ef48c5192a // indirect
 	github.com/oschwald/geoip2-golang v1.6.1
 	github.com/syndtr/goleveldb v1.0.0 // indirect

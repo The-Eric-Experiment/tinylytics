@@ -5,6 +5,8 @@ import (
 	"errors"
 	"strings"
 	"time"
+	"tinylytics/constants"
+	"tinylytics/helpers"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/sqlite"
@@ -75,44 +77,69 @@ func (d *Database) SaveEvent(item *UserEvent, sessionId string) *UserEvent {
 	return item
 }
 
-func (d *Database) GetSessions() int64 {
+func (d *Database) GetSessions(c *gin.Context) int64 {
 	var count int64
-	d.db.Model(&UserSession{}).Count(&count)
+	q := d.db.Model(&UserSession{})
 
+	q = setFilters(q, c, "")
+
+	q.Count(&count)
 	return count
 }
 
-func (d *Database) GetPageViews() int64 {
+func (d *Database) GetPageViews(c *gin.Context) int64 {
 	var count int64
-	d.db.Model(&UserEvent{}).Where(&UserEvent{Name: "pageview"}).Count(&count)
+	q := d.db.Model(&UserEvent{}).Joins("left join user_sessions on user_sessions.id = user_events.session_id").Where(&UserEvent{Name: "pageview"})
 
+	q = setFilters(q, c, "")
+
+	q.Count(&count)
 	return count
 }
 
-func setBrowserFilters(db *gorm.DB, c *gin.Context, querySelect string) *gorm.DB {
+func setFilters(db *gorm.DB, c *gin.Context, querySelect string) *gorm.DB {
+	var qs string = ""
+	if querySelect != "" {
+		qs = querySelect
+	}
 	browser, hasBrowser := c.GetQuery("b")
 	browserVersion, hasBrowserVersion := c.GetQuery("bv")
+	period, hasPeriod := c.GetQuery("p")
+
+	if !hasPeriod {
+		period = constants.DATE_RAGE_24H
+	}
+
+	start, end := helpers.GetTimePeriod(period, "Australia/Sydney")
+
+	db = db.Where("user_sessions.session_start >= ?", start)
+
+	if end != nil {
+		db = db.Where("user_sessions.session_start <= ?", end)
+	}
 
 	if hasBrowser {
-		db = db.Where(&UserSession{Browser: browser}).Group("browser_major")
-		querySelect += ", browser_major"
+		db = db.Where(&UserSession{Browser: browser}).Group("user_sessions.browser_major")
+		qs += ", user_sessions.browser_major"
 
 		if hasBrowserVersion {
 			bver := strings.Split(browserVersion, ".")
 			bmj := bver[0]
 
-			db = db.Where(&UserSession{BrowserMajor: bmj}).Group("browser_minor")
-			querySelect += ", browser_minor"
+			db = db.Where(&UserSession{BrowserMajor: bmj}).Group("user_sessions.browser_minor")
+			qs += ", user_sessions.browser_minor"
 			if len(bver) >= 2 {
-				db = db.Where(&UserSession{BrowserMinor: bver[1]}).Group("browser_patch")
-				querySelect += ", browser_patch"
+				db = db.Where(&UserSession{BrowserMinor: bver[1]}).Group("user_sessions.browser_patch")
+				qs += ", user_sessions.browser_patch"
 			}
 
 		}
 
 	}
 
-	db.Select(querySelect)
+	if querySelect != "" {
+		db.Select(querySelect)
+	}
 
 	return db
 }
@@ -124,7 +151,7 @@ func (d *Database) GetBrowsers(c *gin.Context) (*sql.Rows, error) {
 		Expression: clause.Expr{SQL: "count desc", WithoutParentheses: true},
 	})
 
-	q = setBrowserFilters(q, c, querySelect)
+	q = setFilters(q, c, querySelect).Limit(20)
 
 	return q.Rows()
 }
