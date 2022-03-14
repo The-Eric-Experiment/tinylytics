@@ -66,7 +66,7 @@ func init() {
 func main() {
 	router := gin.Default()
 
-	router.Use(static.Serve("/", static.LocalFile("../client/build", true)))
+	router.Use(static.Serve("/", static.LocalFile("./client", true)))
 
 	api := router.Group("/api")
 	{
