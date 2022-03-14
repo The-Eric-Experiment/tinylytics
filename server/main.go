@@ -15,6 +15,7 @@ import (
 	"tinylytics/routes"
 	"tinylytics/ua"
 
+	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 )
 
@@ -64,11 +65,17 @@ func init() {
 
 func main() {
 	router := gin.Default()
-	router.POST("/api/event", routes.PostEvent(&eventQueue))
-	router.GET("/analytics/:domain/summaries", routes.GetSummaries)
-	router.GET("/analytics/:domain/browsers", routes.GetBrowsers)
-	router.GET("/analytics/:domain/os", routes.GetOSs)
-	router.GET("/analytics/:domain/countries", routes.GetCountries)
+
+	router.Use(static.Serve("/", static.LocalFile("../client/build", true)))
+
+	api := router.Group("/api")
+	{
+		api.POST("/event", routes.PostEvent(&eventQueue))
+		api.GET("/:domain/summaries", routes.GetSummaries)
+		api.GET("/:domain/browsers", routes.GetBrowsers)
+		api.GET("/:domain/os", routes.GetOSs)
+		api.GET("/:domain/countries", routes.GetCountries)
+	}
 
 	eventQueue.Listen(event.ProcessEvent)
 
