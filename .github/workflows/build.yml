@@ -27,7 +27,7 @@ jobs:
       working-directory: ./client
       run: yarn
     - name: Build client
+      working-directory: ./client
       run: yarn build
     - name: Build container
-      working-directory: ./
       run: docker-compose -f "../../../../docker-compose.yml" up -d --build
