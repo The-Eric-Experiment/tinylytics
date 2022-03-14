@@ -67,6 +67,7 @@ func main() {
 	router.POST("/api/event", routes.PostEvent(&eventQueue))
 	router.GET("/analytics/:domain/summaries", routes.GetSummaries)
 	router.GET("/analytics/:domain/browsers", routes.GetBrowsers)
+	router.GET("/analytics/:domain/os", routes.GetOSs)
 
 	eventQueue.Listen(event.ProcessEvent)
 

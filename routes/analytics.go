@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"database/sql"
 	"net/http"
 	"tinylytics/analytics"
 	"tinylytics/db"
@@ -9,18 +10,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetSummaries(c *gin.Context) {
+func getDB(c *gin.Context) *db.Database {
 	domain, _ := c.Params.Get("domain")
 
 	dbFile, err := helpers.GetDatabaseFileName(domain)
 
 	if err != nil {
 		c.String(http.StatusBadRequest, "", err)
-		return
+		return nil
 	}
 
 	database := db.Database{}
 	database.Connect(dbFile)
+	return &database
+}
+
+func GetSummaries(c *gin.Context) {
+	database := getDB(c)
 	defer database.Close()
 
 	sessions := database.GetSessions(c)
@@ -33,17 +39,7 @@ func GetSummaries(c *gin.Context) {
 }
 
 func GetBrowsers(c *gin.Context) {
-	domain, _ := c.Params.Get("domain")
-
-	dbFile, err := helpers.GetDatabaseFileName(domain)
-
-	if err != nil {
-		c.String(http.StatusBadRequest, "", err)
-		return
-	}
-
-	database := db.Database{}
-	database.Connect(dbFile)
+	database := getDB(c)
 	defer database.Close()
 
 	rows, err := database.GetBrowsers(c)
@@ -52,17 +48,38 @@ func GetBrowsers(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "Couldn't get browsers")
 	}
 
-	browserList := make([]*analytics.Browser, 0)
+	items := arrayFromRows(rows, database)
 
+	c.IndentedJSON(http.StatusOK, &analytics.VersionedListResponse{
+		Items: items,
+	})
+}
+
+func GetOSs(c *gin.Context) {
+	database := getDB(c)
+	defer database.Close()
+
+	rows, err := database.GetOSs(c)
+
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Couldn't get OSs")
+	}
+
+	items := arrayFromRows(rows, database)
+
+	c.IndentedJSON(http.StatusOK, &analytics.VersionedListResponse{
+		Items: items,
+	})
+}
+
+func arrayFromRows(rows *sql.Rows, database *db.Database) []*analytics.Versioned {
+	list := make([]*analytics.Versioned, 0)
 	for rows.Next() {
-		var output analytics.Browser
+		var output analytics.Versioned
 
 		database.Scan(rows, &output)
 
-		browserList = append(browserList, &output)
+		list = append(list, &output)
 	}
-
-	c.IndentedJSON(http.StatusOK, &analytics.BrowserListResponse{
-		Items: browserList,
-	})
+	return list
 }

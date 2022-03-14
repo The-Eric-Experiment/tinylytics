@@ -77,33 +77,11 @@ func (d *Database) SaveEvent(item *UserEvent, sessionId string) *UserEvent {
 	return item
 }
 
-func (d *Database) GetSessions(c *gin.Context) int64 {
-	var count int64
-	q := d.db.Model(&UserSession{})
-
-	q = setFilters(q, c, "")
-
-	q.Count(&count)
-	return count
-}
-
-func (d *Database) GetPageViews(c *gin.Context) int64 {
-	var count int64
-	q := d.db.Model(&UserEvent{}).Joins("left join user_sessions on user_sessions.id = user_events.session_id").Where(&UserEvent{Name: "pageview"})
-
-	q = setFilters(q, c, "")
-
-	q.Count(&count)
-	return count
-}
-
-func setFilters(db *gorm.DB, c *gin.Context, querySelect string) *gorm.DB {
-	var qs string = ""
-	if querySelect != "" {
-		qs = querySelect
-	}
+func setFilters(db *gorm.DB, c *gin.Context) *gorm.DB {
 	browser, hasBrowser := c.GetQuery("b")
 	browserVersion, hasBrowserVersion := c.GetQuery("bv")
+	os, hasOS := c.GetQuery("os")
+	osVersion, hasOSVersion := c.GetQuery("osv")
 	period, hasPeriod := c.GetQuery("p")
 
 	if !hasPeriod {
@@ -119,29 +97,90 @@ func setFilters(db *gorm.DB, c *gin.Context, querySelect string) *gorm.DB {
 	}
 
 	if hasBrowser {
-		db = db.Where(&UserSession{Browser: browser}).Group("user_sessions.browser_major")
-		qs += ", user_sessions.browser_major"
+		db = db.Where(&UserSession{Browser: browser})
 
 		if hasBrowserVersion {
 			bver := strings.Split(browserVersion, ".")
 			bmj := bver[0]
 
-			db = db.Where(&UserSession{BrowserMajor: bmj}).Group("user_sessions.browser_minor")
-			qs += ", user_sessions.browser_minor"
+			db = db.Where(&UserSession{BrowserMajor: bmj})
 			if len(bver) >= 2 {
-				db = db.Where(&UserSession{BrowserMinor: bver[1]}).Group("user_sessions.browser_patch")
-				qs += ", user_sessions.browser_patch"
+				db = db.Where(&UserSession{BrowserMinor: bver[1]})
 			}
-
 		}
-
 	}
 
-	if querySelect != "" {
-		db.Select(querySelect)
+	if hasOS {
+		db = db.Where(&UserSession{OS: os})
+
+		if hasOSVersion {
+			osver := strings.Split(osVersion, ".")
+			osmj := osver[0]
+
+			db = db.Where(&UserSession{OSMajor: osmj})
+			if len(osver) >= 2 {
+				db = db.Where(&UserSession{OSMinor: osver[1]})
+			}
+		}
 	}
 
 	return db
+}
+
+func groupBy(db *gorm.DB, c *gin.Context) *gorm.DB {
+	_, hasBrowser := c.GetQuery("b")
+	browserVersion, hasBrowserVersion := c.GetQuery("bv")
+
+	if hasBrowser {
+		db = db.Group("user_sessions.browser_major")
+
+		if hasBrowserVersion {
+			bver := strings.Split(browserVersion, ".")
+
+			db = db.Group("user_sessions.browser_minor")
+			if len(bver) >= 2 {
+				db = db.Group("user_sessions.browser_patch")
+			}
+		}
+	}
+
+	_, hasOS := c.GetQuery("os")
+	osVersion, hasOSVersion := c.GetQuery("osv")
+
+	if hasOS {
+		db = db.Group("user_sessions.os_major")
+
+		if hasOSVersion {
+			osver := strings.Split(osVersion, ".")
+
+			db = db.Group("user_sessions.os_minor")
+			if len(osver) >= 2 {
+				db = db.Group("user_sessions.os_patch")
+			}
+		}
+	}
+
+	return db
+}
+
+func (d *Database) GetSessions(c *gin.Context) int64 {
+	var count int64
+	q := d.db.Model(&UserSession{})
+
+	q = setFilters(q, c)
+
+	q.Count(&count)
+	return count
+}
+
+func (d *Database) GetPageViews(c *gin.Context) int64 {
+	var count int64
+	q := d.db.Model(&UserEvent{}).Joins("left join user_sessions on user_sessions.id = user_events.session_id").Where(&UserEvent{Name: "pageview"})
+
+	q = setFilters(q, c)
+
+	q.Count(&count)
+	return count
 }
 
 func (d *Database) GetBrowsers(c *gin.Context) (*sql.Rows, error) {
@@ -151,7 +190,53 @@ func (d *Database) GetBrowsers(c *gin.Context) (*sql.Rows, error) {
 		Expression: clause.Expr{SQL: "count desc", WithoutParentheses: true},
 	})
 
-	q = setFilters(q, c, querySelect).Limit(20)
+	q = setFilters(q, c).Limit(20)
+	q = groupBy(q, c)
+
+	_, hasBrowser := c.GetQuery("b")
+	browserVersion, hasBrowserVersion := c.GetQuery("bv")
+
+	if hasBrowser {
+		querySelect += ", user_sessions.browser_major as major"
+		if hasBrowserVersion {
+			bver := strings.Split(browserVersion, ".")
+			querySelect += ", user_sessions.browser_minor as minor"
+			if len(bver) >= 2 {
+				querySelect += ", user_sessions.browser_patch as patch"
+			}
+		}
+	}
+
+	q.Select(querySelect)
+
+	return q.Rows()
+}
+
+func (d *Database) GetOSs(c *gin.Context) (*sql.Rows, error) {
+	querySelect := "os as name, count(os) as count"
+
+	q := d.db.Model(&UserSession{}).Select(querySelect).Group("os").Clauses(clause.OrderBy{
+		Expression: clause.Expr{SQL: "count desc", WithoutParentheses: true},
+	})
+
+	q = setFilters(q, c).Limit(20)
+	q = groupBy(q, c)
+	_, hasOS := c.GetQuery("os")
+	osVersion, hasOSVersion := c.GetQuery("osv")
+
+	if hasOS {
+		querySelect += ", user_sessions.os_major as major"
+
+		if hasOSVersion {
+			osver := strings.Split(osVersion, ".")
+			querySelect += ", user_sessions.os_minor as minor"
+			if len(osver) >= 2 {
+				querySelect += ", user_sessions.os_patch as patch"
+			}
+		}
+	}
+
+	q.Select(querySelect)
 
 	return q.Rows()
 }

@@ -5,14 +5,14 @@ type SummaryResponse struct {
 	PageViews int64 `json:"pageViews`
 }
 
-type Browser struct {
-	Name         string `json:"name"`
-	Count        int64  `json:"count"`
-	BrowserMajor *int64 `json:"browserMajor"`
-	BrowserMinor *int64 `json:"browserMinor"`
-	BrowserPatch *int64 `json:"browserPatch"`
+type Versioned struct {
+	Name  string `json:"name"`
+	Count int64  `json:"count"`
+	Major *int64 `json:"major"`
+	Minor *int64 `json:"minor"`
+	Patch *int64 `json:"patch"`
 }
 
-type BrowserListResponse struct {
-	Items []*Browser `json:"items"`
+type VersionedListResponse struct {
+	Items []*Versioned `json:"items"`
 }
