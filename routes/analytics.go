@@ -72,6 +72,23 @@ func GetOSs(c *gin.Context) {
 	})
 }
 
+func GetCountries(c *gin.Context) {
+	database := getDB(c)
+	defer database.Close()
+
+	rows, err := database.GetCountries(c)
+
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Couldn't get Countries")
+	}
+
+	items := arrayFromRows(rows, database)
+
+	c.IndentedJSON(http.StatusOK, &analytics.VersionedListResponse{
+		Items: items,
+	})
+}
+
 func arrayFromRows(rows *sql.Rows, database *db.Database) []*analytics.Versioned {
 	list := make([]*analytics.Versioned, 0)
 	for rows.Next() {

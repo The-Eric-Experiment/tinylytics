@@ -82,6 +82,7 @@ func setFilters(db *gorm.DB, c *gin.Context) *gorm.DB {
 	browserVersion, hasBrowserVersion := c.GetQuery("bv")
 	os, hasOS := c.GetQuery("os")
 	osVersion, hasOSVersion := c.GetQuery("osv")
+	country, hasCountry := c.GetQuery("c")
 	period, hasPeriod := c.GetQuery("p")
 
 	if !hasPeriod {
@@ -124,40 +125,8 @@ func setFilters(db *gorm.DB, c *gin.Context) *gorm.DB {
 		}
 	}
 
-	return db
-}
-
-func groupBy(db *gorm.DB, c *gin.Context) *gorm.DB {
-	_, hasBrowser := c.GetQuery("b")
-	browserVersion, hasBrowserVersion := c.GetQuery("bv")
-
-	if hasBrowser {
-		db = db.Group("user_sessions.browser_major")
-
-		if hasBrowserVersion {
-			bver := strings.Split(browserVersion, ".")
-
-			db = db.Group("user_sessions.browser_minor")
-			if len(bver) >= 2 {
-				db = db.Group("user_sessions.browser_patch")
-			}
-		}
-	}
-
-	_, hasOS := c.GetQuery("os")
-	osVersion, hasOSVersion := c.GetQuery("osv")
-
-	if hasOS {
-		db = db.Group("user_sessions.os_major")
-
-		if hasOSVersion {
-			osver := strings.Split(osVersion, ".")
-
-			db = db.Group("user_sessions.os_minor")
-			if len(osver) >= 2 {
-				db = db.Group("user_sessions.os_patch")
-			}
-		}
+	if hasCountry {
+		db = db.Where(&UserSession{Country: country})
 	}
 
 	return db
@@ -191,10 +160,22 @@ func (d *Database) GetBrowsers(c *gin.Context) (*sql.Rows, error) {
 	})
 
 	q = setFilters(q, c).Limit(20)
-	q = groupBy(q, c)
 
 	_, hasBrowser := c.GetQuery("b")
 	browserVersion, hasBrowserVersion := c.GetQuery("bv")
+
+	if hasBrowser {
+		q = q.Group("user_sessions.browser_major")
+
+		if hasBrowserVersion {
+			bver := strings.Split(browserVersion, ".")
+
+			q = q.Group("user_sessions.browser_minor")
+			if len(bver) >= 2 {
+				q = q.Group("user_sessions.browser_patch")
+			}
+		}
+	}
 
 	if hasBrowser {
 		querySelect += ", user_sessions.browser_major as major"
@@ -215,14 +196,26 @@ func (d *Database) GetBrowsers(c *gin.Context) (*sql.Rows, error) {
 func (d *Database) GetOSs(c *gin.Context) (*sql.Rows, error) {
 	querySelect := "os as name, count(os) as count"
 
-	q := d.db.Model(&UserSession{}).Select(querySelect).Group("os").Clauses(clause.OrderBy{
+	q := d.db.Model(&UserSession{}).Select(querySelect).Clauses(clause.OrderBy{
 		Expression: clause.Expr{SQL: "count desc", WithoutParentheses: true},
 	})
 
 	q = setFilters(q, c).Limit(20)
-	q = groupBy(q, c)
 	_, hasOS := c.GetQuery("os")
 	osVersion, hasOSVersion := c.GetQuery("osv")
+
+	if hasOS {
+		q = q.Group("user_sessions.os_major")
+
+		if hasOSVersion {
+			osver := strings.Split(osVersion, ".")
+
+			q = q.Group("user_sessions.os_minor")
+			if len(osver) >= 2 {
+				q = q.Group("user_sessions.os_patch")
+			}
+		}
+	}
 
 	if hasOS {
 		querySelect += ", user_sessions.os_major as major"
@@ -234,6 +227,25 @@ func (d *Database) GetOSs(c *gin.Context) (*sql.Rows, error) {
 				querySelect += ", user_sessions.os_patch as patch"
 			}
 		}
+	}
+
+	q.Select(querySelect)
+
+	return q.Rows()
+}
+
+func (d *Database) GetCountries(c *gin.Context) (*sql.Rows, error) {
+	querySelect := "country as name, count(country) as count"
+
+	q := d.db.Model(&UserSession{}).Select(querySelect).Clauses(clause.OrderBy{
+		Expression: clause.Expr{SQL: "count desc", WithoutParentheses: true},
+	})
+
+	q = setFilters(q, c).Limit(20)
+	_, hasCountry := c.GetQuery("c")
+
+	if hasCountry {
+		q = q.Group("country")
 	}
 
 	q.Select(querySelect)
