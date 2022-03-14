@@ -2,6 +2,7 @@ package routes
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"tinylytics/analytics"
 	"tinylytics/db"
@@ -50,7 +51,7 @@ func GetBrowsers(c *gin.Context) {
 
 	items := arrayFromRows(rows, database)
 
-	c.IndentedJSON(http.StatusOK, &analytics.VersionedListResponse{
+	c.IndentedJSON(http.StatusOK, &analytics.AnalyticsListResponse{
 		Items: items,
 	})
 }
@@ -67,7 +68,7 @@ func GetOSs(c *gin.Context) {
 
 	items := arrayFromRows(rows, database)
 
-	c.IndentedJSON(http.StatusOK, &analytics.VersionedListResponse{
+	c.IndentedJSON(http.StatusOK, &analytics.AnalyticsListResponse{
 		Items: items,
 	})
 }
@@ -84,17 +85,19 @@ func GetCountries(c *gin.Context) {
 
 	items := arrayFromRows(rows, database)
 
-	c.IndentedJSON(http.StatusOK, &analytics.VersionedListResponse{
+	c.IndentedJSON(http.StatusOK, &analytics.AnalyticsListResponse{
 		Items: items,
 	})
 }
 
-func arrayFromRows(rows *sql.Rows, database *db.Database) []*analytics.Versioned {
-	list := make([]*analytics.Versioned, 0)
+func arrayFromRows(rows *sql.Rows, database *db.Database) []*analytics.AnalyticsItem {
+	list := make([]*analytics.AnalyticsItem, 0)
 	for rows.Next() {
-		var output analytics.Versioned
+		var output analytics.AnalyticsItem
 
 		database.Scan(rows, &output)
+
+		fmt.Println(output)
 
 		list = append(list, &output)
 	}

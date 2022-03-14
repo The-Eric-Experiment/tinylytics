@@ -63,6 +63,8 @@ func ProcessEvent(item *ClientInfo) {
 
 	country := geo.GetGeo(item.IP)
 
+	fmt.Println(country)
+
 	session := database.GetUserSession(userIdent)
 
 	if session == nil {

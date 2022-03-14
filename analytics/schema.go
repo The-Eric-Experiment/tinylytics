@@ -5,7 +5,7 @@ type SummaryResponse struct {
 	PageViews int64 `json:"pageViews`
 }
 
-type Versioned struct {
+type AnalyticsItem struct {
 	Name  string `json:"name"`
 	Count int64  `json:"count"`
 	Major *int64 `json:"major"`
@@ -13,6 +13,6 @@ type Versioned struct {
 	Patch *int64 `json:"patch"`
 }
 
-type VersionedListResponse struct {
-	Items []*Versioned `json:"items"`
+type AnalyticsListResponse struct {
+	Items []*AnalyticsItem `json:"items"`
 }

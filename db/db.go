@@ -21,8 +21,8 @@ type Database struct {
 
 func (d *Database) Connect(file string) {
 	db, err := gorm.Open(sqlite.Open("file:"+file+"?cache=shared&mode=rwc&_journal_mode=WAL"), &gorm.Config{
-		// Logger: logger.Default.LogMode(logger.Silent),
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Silent),
+		// Logger: logger.Default.LogMode(logger.Info),
 	})
 
 	if err != nil {
@@ -239,16 +239,9 @@ func (d *Database) GetCountries(c *gin.Context) (*sql.Rows, error) {
 
 	q := d.db.Model(&UserSession{}).Select(querySelect).Clauses(clause.OrderBy{
 		Expression: clause.Expr{SQL: "count desc", WithoutParentheses: true},
-	})
+	}).Group("country").Limit(20)
 
-	q = setFilters(q, c).Limit(20)
-	_, hasCountry := c.GetQuery("c")
-
-	if hasCountry {
-		q = q.Group("country")
-	}
-
-	q.Select(querySelect)
+	q = setFilters(q, c)
 
 	return q.Rows()
 }
