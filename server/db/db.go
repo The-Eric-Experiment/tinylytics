@@ -21,8 +21,8 @@ type Database struct {
 
 func (d *Database) Connect(file string) {
 	db, err := gorm.Open(sqlite.Open("file:"+file+"?cache=shared&mode=rwc&_journal_mode=WAL"), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Silent),
-		// Logger: logger.Default.LogMode(logger.Info),
+		// Logger: logger.Default.LogMode(logger.Silent),
+		Logger: logger.Default.LogMode(logger.Info),
 	})
 
 	if err != nil {
@@ -194,9 +194,9 @@ func (d *Database) GetBrowsers(c *gin.Context) (*sql.Rows, error) {
 }
 
 func (d *Database) GetOSs(c *gin.Context) (*sql.Rows, error) {
-	querySelect := "os as name, count(os) as count"
+	querySelect := "user_sessions.os as name, count(user_sessions.os) as count"
 
-	q := d.db.Model(&UserSession{}).Select(querySelect).Clauses(clause.OrderBy{
+	q := d.db.Model(&UserSession{}).Select(querySelect).Group("os").Clauses(clause.OrderBy{
 		Expression: clause.Expr{SQL: "count desc", WithoutParentheses: true},
 	})
 
