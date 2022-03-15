@@ -10,11 +10,12 @@
     "@types/node": "^16.11.26",
     "@types/react": "^17.0.40",
     "@types/react-dom": "^17.0.13",
+    "@types/styled-components": "^5.1.24",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-query": "^3.34.16",
     "react-scripts": "5.0.0",
     "styled-components": "^5.3.3",
+    "swr": "^1.2.2",
     "typescript": "^4.6.2",
     "web-vitals": "^2.1.4"
   },
@@ -30,7 +31,7 @@
       "react-app/jest"
     ]
   },
-  "proxy": "http://localhost:8080",
+  "proxy": "http://192.168.1.60:8080",
   "browserslist": {
     "production": [
       ">0.2%",
