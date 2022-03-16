@@ -27,6 +27,7 @@ export interface Filters {
   b?: string;
   bv?: string;
   c?: string;
+  cv?: string; // get rid of this, country version
   os?: string;
   osv?: string;
 }

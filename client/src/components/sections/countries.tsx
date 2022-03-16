@@ -16,7 +16,7 @@ export const Countries: FunctionComponent<CountriesProps> = ({
 }) => {
   const { data } = useCountries(domain, filters);
   const { getLabel, showAsLink, updateFilter, selectedFilter } =
-    useAnalyticsFilters(filters, { name: "c", version: "" }, onFilter);
+    useAnalyticsFilters(filters, { name: "c", version: "cv" }, onFilter);
 
   return (
     <div>
