@@ -1,18 +1,14 @@
 import React from "react";
+import { Route, Routes } from "react-router-dom";
 import styled from "styled-components";
-import { Browsers } from "./components/sections/browsers";
-import { Countries } from "./components/sections/countries";
-import { OSs } from "./components/sections/os";
-import { Summary } from "./components/sections/summary";
+import { AnalyticsPage } from "./pages/analytics-page";
 
 function App() {
-  const domain = "oldavista.com";
   return (
     <Container>
-      <Summary domain={domain} />
-      <Browsers domain={domain} />
-      <OSs domain={domain} />
-      <Countries domain={domain} />
+      <Routes>
+        <Route path="/" element={<AnalyticsPage />} />
+      </Routes>
     </Container>
   );
 }
