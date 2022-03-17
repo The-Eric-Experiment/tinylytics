@@ -6,11 +6,11 @@ type SummaryResponse struct {
 }
 
 type AnalyticsItem struct {
-	Name  string `json:"name"`
-	Count int64  `json:"count"`
-	Major *int64 `json:"major"`
-	Minor *int64 `json:"minor"`
-	Patch *int64 `json:"patch"`
+	Name  string  `json:"name"`
+	Count int64   `json:"count"`
+	Major *string `json:"major"`
+	Minor *string `json:"minor"`
+	Patch *string `json:"patch"`
 }
 
 type AnalyticsListResponse struct {

@@ -101,7 +101,7 @@ func setFilters(db *gorm.DB, c *gin.Context) *gorm.DB {
 		db = db.Where(&UserSession{Browser: browser})
 
 		if hasBrowserVersion {
-			bver := strings.Split(browserVersion, ".")
+			bver := strings.Split(browserVersion, "/")
 			bmj := bver[0]
 
 			db = db.Where(&UserSession{BrowserMajor: bmj})
@@ -115,7 +115,7 @@ func setFilters(db *gorm.DB, c *gin.Context) *gorm.DB {
 		db = db.Where(&UserSession{OS: os})
 
 		if hasOSVersion {
-			osver := strings.Split(osVersion, ".")
+			osver := strings.Split(osVersion, "/")
 			osmj := osver[0]
 
 			db = db.Where(&UserSession{OSMajor: osmj})
@@ -168,7 +168,7 @@ func (d *Database) GetBrowsers(c *gin.Context) (*sql.Rows, error) {
 		q = q.Group("user_sessions.browser_major")
 
 		if hasBrowserVersion {
-			bver := strings.Split(browserVersion, ".")
+			bver := strings.Split(browserVersion, "/")
 
 			q = q.Group("user_sessions.browser_minor")
 			if len(bver) >= 2 {
@@ -180,7 +180,7 @@ func (d *Database) GetBrowsers(c *gin.Context) (*sql.Rows, error) {
 	if hasBrowser {
 		querySelect += ", user_sessions.browser_major as major"
 		if hasBrowserVersion {
-			bver := strings.Split(browserVersion, ".")
+			bver := strings.Split(browserVersion, "/")
 			querySelect += ", user_sessions.browser_minor as minor"
 			if len(bver) >= 2 {
 				querySelect += ", user_sessions.browser_patch as patch"
@@ -208,7 +208,7 @@ func (d *Database) GetOSs(c *gin.Context) (*sql.Rows, error) {
 		q = q.Group("user_sessions.os_major")
 
 		if hasOSVersion {
-			osver := strings.Split(osVersion, ".")
+			osver := strings.Split(osVersion, "/")
 
 			q = q.Group("user_sessions.os_minor")
 			if len(osver) >= 2 {
@@ -221,7 +221,7 @@ func (d *Database) GetOSs(c *gin.Context) (*sql.Rows, error) {
 		querySelect += ", user_sessions.os_major as major"
 
 		if hasOSVersion {
-			osver := strings.Split(osVersion, ".")
+			osver := strings.Split(osVersion, "/")
 			querySelect += ", user_sessions.os_minor as minor"
 			if len(osver) >= 2 {
 				querySelect += ", user_sessions.os_patch as patch"

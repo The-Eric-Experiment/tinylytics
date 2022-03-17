@@ -34,13 +34,33 @@ export function useAnalyticsFilters(
         (o) => !!o || o === 0
       );
       if (s.length === parts.length) {
-        return filters[filterNames.version]!;
+        return parts.join(".");
       }
 
       return parts.slice(0, s.length + 1).join(".");
     }
 
     if (filters[filterNames.name] && (data.major || data.major === 0)) {
+      return data.major.toString();
+    }
+
+    return data.name;
+  }
+
+  function getFilter(data: AnalyticsData): string {
+    if (filters[filterNames.version]) {
+      let s = filters[filterNames.version]!.split("/");
+      const parts = [data.major, data.minor, data.patch].filter(
+        (o) => !!o || o === 0
+      );
+      if (s.length === parts.length) {
+        return parts.join("/");
+      }
+
+      return parts.slice(0, s.length + 1).join("/");
+    }
+
+    if (filters[filterNames.name] && data.major) {
       return data.major.toString();
     }
 
@@ -54,7 +74,7 @@ export function useAnalyticsFilters(
       if (!filters[filterNames.name]) {
         nf = { ...nf, [filterNames.name]: data.name };
       } else if (!filters[filterNames.version]) {
-        nf = { ...nf, [filterNames.version]: getLabel(data) };
+        nf = { ...nf, [filterNames.version]: getFilter(data) };
       }
       onFilter(nf);
     };

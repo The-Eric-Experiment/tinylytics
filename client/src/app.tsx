@@ -5,19 +5,10 @@ import { AnalyticsPage } from "./pages/analytics-page";
 
 function App() {
   return (
-    <Container>
-      <Routes>
-        <Route path="/" element={<AnalyticsPage />} />
-      </Routes>
-    </Container>
+    <Routes>
+      <Route path="/" element={<AnalyticsPage />} />
+    </Routes>
   );
 }
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: space-between;
-`;
 
 export default App;

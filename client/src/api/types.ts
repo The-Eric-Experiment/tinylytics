@@ -16,10 +16,19 @@ export interface AnalyticsDataResponse {
 }
 
 export enum Periods {
-  Today = "today",
-  Yesterday = "yesterday",
-  H24 = "24h",
-  AllTime = "alltime",
+  TODAY = "today",
+  YESTERDAY = "yesterday",
+  P24H = "24h",
+  WEEK = "week",
+  LASTWEEK = "lastweek",
+  P7D = "7d",
+  MONTH = "month",
+  LASTMONTH = "lastmonth",
+  P30D = "30d",
+  P90D = "90d",
+  YEAR = "year",
+  LASTYEAR = "lastyear",
+  ALLTIME = "alltime",
 }
 
 export interface Filters {
