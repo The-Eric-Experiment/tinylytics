@@ -44,7 +44,7 @@ func ProcessEvent(item *ClientInfo) {
 	}
 
 	if crawlerdetect.IsCrawler(item.UserAgent) {
-		fmt.Println("crawler detected")
+		fmt.Println("crawler detected", item.UserAgent)
 		return
 	}
 
