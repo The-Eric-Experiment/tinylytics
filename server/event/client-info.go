@@ -1,6 +1,8 @@
 package event
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,6 +23,7 @@ func GetIP(c *gin.Context) string {
 
 func GetReferer(c *gin.Context) string {
 	referer := c.Request.Header.Get("HTTP_REFERER")
+	fmt.Println("Referer", referer)
 	if referer == "" || referer == "null" {
 		return ""
 	}

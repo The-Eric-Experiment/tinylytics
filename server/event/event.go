@@ -2,6 +2,7 @@ package event
 
 import (
 	"fmt"
+	"strings"
 	"time"
 	"tinylytics/db"
 	"tinylytics/geo"
@@ -65,7 +66,7 @@ func ProcessEvent(item *ClientInfo) {
 
 		var referrer string = "(none)"
 
-		if len(item.Referer) != 0 {
+		if len(item.Referer) != 0 || !strings.Contains(strings.ToLower(item.Referer), strings.ToLower(item.Domain)) {
 			referrer = helpers.Substr(item.Referer, 0, 500)
 		}
 

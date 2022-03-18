@@ -21,8 +21,8 @@ type Database struct {
 
 func (d *Database) Connect(file string) {
 	db, err := gorm.Open(sqlite.Open("file:"+file+"?cache=shared&mode=rwc&_journal_mode=WAL"), &gorm.Config{
-		// Logger: logger.Default.LogMode(logger.Silent),
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Silent),
+		// Logger: logger.Default.LogMode(logger.Info),
 	})
 
 	if err != nil {
