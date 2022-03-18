@@ -44,6 +44,8 @@ func (d *Database) Initialize() {
 	// Migrate the schema
 	d.db.AutoMigrate(&UserSession{})
 	d.db.AutoMigrate(&UserEvent{})
+
+	d.db.Exec("update user_sessions set referer = '(none)' where referer is null")
 }
 
 func (d *Database) GetUserSession(userIdent string) *UserSession {
@@ -84,6 +86,7 @@ func setFilters(db *gorm.DB, c *gin.Context) *gorm.DB {
 	osVersion, hasOSVersion := c.GetQuery("osv")
 	country, hasCountry := c.GetQuery("c")
 	period, hasPeriod := c.GetQuery("p")
+	referer, hasReferer := c.GetQuery("r")
 
 	if !hasPeriod {
 		period = constants.DATE_RAGE_24H
@@ -127,6 +130,10 @@ func setFilters(db *gorm.DB, c *gin.Context) *gorm.DB {
 
 	if hasCountry {
 		db = db.Where(&UserSession{Country: country})
+	}
+
+	if hasReferer {
+		db = db.Where(&UserSession{Referer: referer})
 	}
 
 	return db
@@ -240,6 +247,18 @@ func (d *Database) GetCountries(c *gin.Context) (*sql.Rows, error) {
 	q := d.db.Model(&UserSession{}).Select(querySelect).Clauses(clause.OrderBy{
 		Expression: clause.Expr{SQL: "count desc", WithoutParentheses: true},
 	}).Group("country").Limit(20)
+
+	q = setFilters(q, c)
+
+	return q.Rows()
+}
+
+func (d *Database) GetReferrers(c *gin.Context) (*sql.Rows, error) {
+	querySelect := "referer as name, count(referer) as count"
+
+	q := d.db.Model(&UserSession{}).Select(querySelect).Clauses(clause.OrderBy{
+		Expression: clause.Expr{SQL: "count desc", WithoutParentheses: true},
+	}).Group("referer").Limit(20)
 
 	q = setFilters(q, c)
 

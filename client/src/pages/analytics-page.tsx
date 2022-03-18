@@ -5,6 +5,7 @@ import { FilterBar } from "../components/filter-bar/filer-bar";
 import { Browsers } from "../components/sections/browsers";
 import { Countries } from "../components/sections/countries";
 import { OSs } from "../components/sections/os";
+import { Referrers } from "../components/sections/referrers";
 import { Summary } from "../components/sections/summary";
 import { SuspenseCard } from "../components/sections/suspense-card";
 import {
@@ -81,6 +82,15 @@ export const AnalyticsPage: FunctionComponent<AnalyticsPageProps> = () => {
         <GridItem take={2}>
           <SuspenseCard>
             <Countries
+              domain={domain}
+              filters={filters}
+              onFilter={updateFilters}
+            />
+          </SuspenseCard>
+        </GridItem>
+        <GridItem take={2}>
+          <SuspenseCard>
+            <Referrers
               domain={domain}
               filters={filters}
               onFilter={updateFilters}

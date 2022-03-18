@@ -20,6 +20,7 @@ type UserSession struct {
 	OSPatch      string
 	Country      string `gorm:"index"`
 	UserAgent    string
+	Referer      string `gorm:"index"`
 	SessionStart time.Time
 	SessionEnd   time.Time
 	ScreenWidth  int64

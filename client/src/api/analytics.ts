@@ -51,3 +51,10 @@ export function useCountries(
 ): SWRResponse<AnalyticsDataResponse> {
   return useGet(domain, "countries", filters);
 }
+
+export function useReferrers(
+  domain: string,
+  filters: Filters
+): SWRResponse<AnalyticsDataResponse> {
+  return useGet(domain, "referrers", filters);
+}

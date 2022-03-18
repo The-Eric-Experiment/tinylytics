@@ -75,6 +75,7 @@ func main() {
 		api.GET("/:domain/browsers", routes.GetBrowsers)
 		api.GET("/:domain/os", routes.GetOSs)
 		api.GET("/:domain/countries", routes.GetCountries)
+		api.GET("/:domain/referrers", routes.GetReferrers)
 	}
 
 	eventQueue.Listen(event.ProcessEvent)

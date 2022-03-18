@@ -43,7 +43,7 @@ func ProcessEvent(item *ClientInfo) {
 	}
 
 	if crawlerdetect.IsCrawler(item.UserAgent) {
-		fmt.Println("crwler detected")
+		fmt.Println("crawler detected")
 		return
 	}
 
@@ -51,10 +51,6 @@ func ProcessEvent(item *ClientInfo) {
 	database.Connect(databaseFileName)
 	defer database.Close()
 
-	// c := exec.Command("clear")
-	// c.Stdout = os.Stdout
-	// c.Run()
-	// fmt.Println(eventQueue.GetSize())
 	fmt.Println("processing", item)
 
 	userIdent := GetSessionUserIdent(item)
@@ -63,11 +59,16 @@ func ProcessEvent(item *ClientInfo) {
 
 	country := geo.GetGeo(item.IP)
 
-	fmt.Println(country)
-
 	session := database.GetUserSession(userIdent)
 
 	if session == nil {
+
+		var referrer string = "(none)"
+
+		if len(item.Referer) != 0 {
+			referrer = helpers.Substr(item.Referer, 0, 500)
+		}
+
 		session = database.StartUserSession(&db.UserSession{
 			ID:           GetSessionId(item, item.Time),
 			UserIdent:    userIdent,
@@ -83,6 +84,7 @@ func ProcessEvent(item *ClientInfo) {
 			SessionStart: item.Time,
 			SessionEnd:   item.Time,
 			UserAgent:    item.UserAgent,
+			Referer:      referrer,
 			Events:       0,
 			ScreenWidth:  item.ScreenWidth,
 		})

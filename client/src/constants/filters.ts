@@ -7,6 +7,7 @@ export const FILTER_NAMES: Partial<Record<keyof Filters, string>> = {
   os: "OS",
   osv: "OS Version",
   c: "Country",
+  r: "Referrer",
 };
 
 export const PERIOD_NAMES: Record<Periods, string> = {

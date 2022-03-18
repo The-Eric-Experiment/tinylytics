@@ -21,8 +21,8 @@ func GetIP(c *gin.Context) string {
 
 func GetReferer(c *gin.Context) string {
 	referer := c.Request.Header.Get("HTTP_REFERER")
-	if referer != "" {
-		return referer
+	if referer == "" || referer == "null" {
+		return ""
 	}
-	return ""
+	return referer
 }

@@ -39,6 +39,8 @@ export interface Filters {
   cv?: string; // get rid of this, country version
   os?: string;
   osv?: string;
+  r?: string;
+  rv?: string;
 }
 
 export interface FetcherRequest {
