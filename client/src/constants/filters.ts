@@ -24,3 +24,11 @@ export const PERIOD_NAMES: Record<Periods, string> = {
   [Periods.YEAR]: "This Year",
   [Periods.YESTERDAY]: "Yesterday",
 };
+
+export const DEPENDANT_FILTERS: Partial<
+  Record<keyof Filters, Array<keyof Filters>>
+> = {
+  b: ["bv"],
+  c: ["cv"],
+  os: ["osv"],
+};

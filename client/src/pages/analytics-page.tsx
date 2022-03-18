@@ -1,12 +1,20 @@
 import React, { FunctionComponent, Suspense, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import styled from "styled-components";
 import { Filters, Periods } from "../api/types";
 import { FilterBar } from "../components/filter-bar/filer-bar";
 import { Browsers } from "../components/sections/browsers";
 import { Countries } from "../components/sections/countries";
 import { OSs } from "../components/sections/os";
 import { Summary } from "../components/sections/summary";
+import { SuspenseCard } from "../components/sections/suspense-card";
+import {
+  Card,
+  GridItem,
+  PageGrid,
+  PageHeader,
+  PageLayout,
+} from "../components/shared/page-layout";
+import { DEPENDANT_FILTERS } from "../constants/filters";
 
 export interface AnalyticsPageProps {}
 
@@ -30,31 +38,56 @@ export const AnalyticsPage: FunctionComponent<AnalyticsPageProps> = () => {
 
   const removeFilter = (key: keyof Filters) => {
     const n = { ...filters };
+    const dependant = DEPENDANT_FILTERS[key];
+
+    if (dependant && dependant.length) {
+      for (const depKey of dependant) {
+        delete n[depKey];
+      }
+    }
+
     delete n[key];
     const params = new URLSearchParams(n);
     setSearchParams(params, { replace: true });
   };
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <FilterBar
-        filters={filters}
-        removeFilter={removeFilter}
-        onFilter={updateFilters}
-      />
-      <Container>
-        <Summary domain={domain} filters={filters} />
-        <Browsers domain={domain} filters={filters} onFilter={updateFilters} />
-        <OSs domain={domain} filters={filters} onFilter={updateFilters} />
-        <Countries domain={domain} filters={filters} onFilter={updateFilters} />
-      </Container>
-    </Suspense>
+    <PageLayout>
+      <PageHeader>
+        <FilterBar
+          filters={filters}
+          removeFilter={removeFilter}
+          onFilter={updateFilters}
+        />
+      </PageHeader>
+      <PageGrid>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Summary domain={domain} filters={filters} />
+        </Suspense>
+        <GridItem take={2}>
+          <SuspenseCard>
+            <Browsers
+              domain={domain}
+              filters={filters}
+              onFilter={updateFilters}
+            />
+          </SuspenseCard>
+        </GridItem>
+        <GridItem take={2}>
+          <SuspenseCard>
+            <OSs domain={domain} filters={filters} onFilter={updateFilters} />
+          </SuspenseCard>
+        </GridItem>
+        <GridItem take={2}>
+          <SuspenseCard>
+            <Countries
+              domain={domain}
+              filters={filters}
+              onFilter={updateFilters}
+            />
+          </SuspenseCard>
+        </GridItem>
+      </PageGrid>
+    </PageLayout>
   );
 };
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: space-between;
-`;

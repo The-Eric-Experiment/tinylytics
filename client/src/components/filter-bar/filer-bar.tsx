@@ -1,6 +1,7 @@
 import React, { FunctionComponent } from "react";
 import { Filters, Periods } from "../../api/types";
 import { FILTER_NAMES, PERIOD_NAMES } from "../../constants/filters";
+import { Pill } from "../shared/page-layout";
 
 type FilterBarProps = {
   filters: Filters;
@@ -18,7 +19,7 @@ export const FilterBar: FunctionComponent<FilterBarProps> = ({
     onFilter({ p: value as Periods });
   };
   return (
-    <div>
+    <>
       <select onChange={(item) => changePeriod(item.target.value)}>
         {(Object.keys(PERIOD_NAMES) as Array<Periods>).map((key) => {
           return (
@@ -32,11 +33,14 @@ export const FilterBar: FunctionComponent<FilterBarProps> = ({
         .filter((key) => key !== "p")
         .map((key) => {
           return (
-            <button key={key} onClick={removeFilterClick(key)}>
-              {FILTER_NAMES[key]}
-            </button>
+            <Pill>
+              {FILTER_NAMES[key]} is {filters[key]}
+              <button key={key} onClick={removeFilterClick(key)}>
+                x
+              </button>
+            </Pill>
           );
         })}
-    </div>
+    </>
   );
 };
