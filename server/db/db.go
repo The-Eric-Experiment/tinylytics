@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 	"tinylytics/constants"
@@ -71,8 +72,9 @@ func (d *Database) Initialize() {
 
 		domain, fullPath := helpers.FilterReferrer(output.Referer, "oldavista.com")
 
-		output.Referer = domain
-		output.RefererFullPath = fullPath
+		obj := reflect.Indirect(reflect.ValueOf(&output))
+		obj.FieldByName("Referer").SetString(domain)
+		obj.FieldByName("RefererFullPath").SetString(fullPath)
 
 		d.db.Save(&output)
 	}
