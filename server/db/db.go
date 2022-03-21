@@ -3,8 +3,6 @@ package db
 import (
 	"database/sql"
 	"errors"
-	"fmt"
-	"reflect"
 	"strings"
 	"time"
 	"tinylytics/constants"
@@ -48,36 +46,6 @@ func (d *Database) Initialize() {
 	d.db.AutoMigrate(&UserEvent{})
 
 	d.db.Exec("update user_sessions set referer = '(none)' where referer = ''")
-
-	var count int64
-	d.db.Model(&UserSession{}).Where("user_sessions.referer_full_path is not null").Count(&count)
-
-	fmt.Println(count)
-
-	if count > 0 {
-		return
-	}
-
-	rows, err := d.db.Model(&UserSession{}).Where("user_sessions.referer != '(none)'").Rows()
-
-	if err != nil {
-		fmt.Println("err")
-		return
-	}
-
-	for rows.Next() {
-		var output UserSession
-
-		d.db.ScanRows(rows, output)
-
-		domain, fullPath := helpers.FilterReferrer(output.Referer, "oldavista.com")
-
-		obj := reflect.Indirect(reflect.ValueOf(&output))
-		obj.FieldByName("Referer").SetString(domain)
-		obj.FieldByName("RefererFullPath").SetString(fullPath)
-
-		d.db.Save(&output)
-	}
 }
 
 func (d *Database) GetUserSession(userIdent string) *UserSession {
