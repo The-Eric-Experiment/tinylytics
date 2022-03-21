@@ -107,6 +107,7 @@ func GetReferrers(c *gin.Context) {
 }
 
 func arrayFromRows(rows *sql.Rows, database *db.Database) []*analytics.AnalyticsItem {
+	defer rows.Close()
 	list := make([]*analytics.AnalyticsItem, 0)
 	for rows.Next() {
 		var output analytics.AnalyticsItem

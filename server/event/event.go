@@ -2,7 +2,6 @@ package event
 
 import (
 	"fmt"
-	"strings"
 	"time"
 	"tinylytics/db"
 	"tinylytics/geo"
@@ -63,31 +62,27 @@ func ProcessEvent(item *ClientInfo) {
 	session := database.GetUserSession(userIdent)
 
 	if session == nil {
-
-		var referrer string = "(none)"
-
-		if len(item.Referer) != 0 || !strings.Contains(strings.ToLower(item.Referer), strings.ToLower(item.Domain)) {
-			referrer = helpers.Substr(item.Referer, 0, 500)
-		}
+		referrerDomain, referrerFullPath := helpers.FilterReferrer(item.Referer, item.Domain)
 
 		session = database.StartUserSession(&db.UserSession{
-			ID:           GetSessionId(item, item.Time),
-			UserIdent:    userIdent,
-			Browser:      result.Browser,
-			BrowserMajor: result.BrowserMajor,
-			BrowserMinor: result.BrowserMinor,
-			BrowserPatch: result.BrowserPatch,
-			OS:           result.OS,
-			OSMajor:      result.OSMajor,
-			OSMinor:      result.OSMinor,
-			OSPatch:      result.OSPatch,
-			Country:      country,
-			SessionStart: item.Time,
-			SessionEnd:   item.Time,
-			UserAgent:    item.UserAgent,
-			Referer:      referrer,
-			Events:       0,
-			ScreenWidth:  item.ScreenWidth,
+			ID:              GetSessionId(item, item.Time),
+			UserIdent:       userIdent,
+			Browser:         result.Browser,
+			BrowserMajor:    result.BrowserMajor,
+			BrowserMinor:    result.BrowserMinor,
+			BrowserPatch:    result.BrowserPatch,
+			OS:              result.OS,
+			OSMajor:         result.OSMajor,
+			OSMinor:         result.OSMinor,
+			OSPatch:         result.OSPatch,
+			Country:         country,
+			SessionStart:    item.Time,
+			SessionEnd:      item.Time,
+			UserAgent:       item.UserAgent,
+			Referer:         referrerDomain,
+			RefererFullPath: referrerFullPath,
+			Events:          0,
+			ScreenWidth:     item.ScreenWidth,
 		})
 	}
 

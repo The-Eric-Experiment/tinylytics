@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 	"tinylytics/constants"
@@ -45,7 +46,36 @@ func (d *Database) Initialize() {
 	d.db.AutoMigrate(&UserSession{})
 	d.db.AutoMigrate(&UserEvent{})
 
-	d.db.Exec("update user_sessions set referer = '(none)' where referer is null")
+	d.db.Exec("update user_sessions set referer = '(none)' where referer = ''")
+
+	var count int64
+	d.db.Model(&UserSession{}).Where("user_sessions.referer_full_path is not null").Count(&count)
+
+	fmt.Println(count)
+
+	if count > 0 {
+		return
+	}
+
+	rows, err := d.db.Model(&UserSession{}).Where("user_sessions.referer != '(none)'").Rows()
+
+	if err != nil {
+		fmt.Println("err")
+		return
+	}
+
+	for rows.Next() {
+		var output UserSession
+
+		d.db.ScanRows(rows, output)
+
+		domain, fullPath := helpers.FilterReferrer(output.Referer, "oldavista.com")
+
+		output.Referer = domain
+		output.RefererFullPath = fullPath
+
+		d.db.Save(&output)
+	}
 }
 
 func (d *Database) GetUserSession(userIdent string) *UserSession {
@@ -261,6 +291,18 @@ func (d *Database) GetReferrers(c *gin.Context) (*sql.Rows, error) {
 	}).Group("referer").Limit(20)
 
 	q = setFilters(q, c)
+
+	_, hasReferrer := c.GetQuery("r")
+
+	if hasReferrer {
+		q = q.Group("user_sessions.referer_full_path")
+	}
+
+	if hasReferrer {
+		querySelect += ", user_sessions.referer_full_path as major"
+	}
+
+	q.Select(querySelect)
 
 	return q.Rows()
 }
