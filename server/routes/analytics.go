@@ -3,12 +3,26 @@ package routes
 import (
 	"database/sql"
 	"net/http"
+	"strings"
 	"tinylytics/analytics"
 	"tinylytics/db"
 	"tinylytics/helpers"
 
 	"github.com/gin-gonic/gin"
 )
+
+func arrayFromRows(rows *sql.Rows, database *db.Database) []*analytics.AnalyticsItem {
+	defer rows.Close()
+	list := make([]*analytics.AnalyticsItem, 0)
+	for rows.Next() {
+		var output analytics.AnalyticsItem
+
+		database.Scan(rows, &output)
+
+		list = append(list, &output)
+	}
+	return list
+}
 
 func getDB(c *gin.Context) *db.Database {
 	domain, _ := c.Params.Get("domain")
@@ -50,8 +64,23 @@ func GetBrowsers(c *gin.Context) {
 
 	items := arrayFromRows(rows, database)
 
+	previousFilters := make([]string, 0)
+
+	browser, hasBrowser := c.GetQuery("b")
+	browserVersion, hasBrowserVersion := c.GetQuery("bv")
+
+	if hasBrowser {
+		previousFilters = append(previousFilters, browser)
+	}
+
+	if hasBrowserVersion {
+		bver := strings.Split(browserVersion, "/")
+		previousFilters = append(previousFilters, bver...)
+	}
+
 	c.IndentedJSON(http.StatusOK, &analytics.AnalyticsListResponse{
-		Items: items,
+		PreviousFilters: previousFilters,
+		Items:           items,
 	})
 }
 
@@ -67,8 +96,23 @@ func GetOSs(c *gin.Context) {
 
 	items := arrayFromRows(rows, database)
 
+	previousFilters := make([]string, 0)
+
+	os, hasOs := c.GetQuery("os")
+	osVersion, hasOsVersion := c.GetQuery("osv")
+
+	if hasOs {
+		previousFilters = append(previousFilters, os)
+	}
+
+	if hasOsVersion {
+		osver := strings.Split(osVersion, "/")
+		previousFilters = append(previousFilters, osver...)
+	}
+
 	c.IndentedJSON(http.StatusOK, &analytics.AnalyticsListResponse{
-		Items: items,
+		PreviousFilters: previousFilters,
+		Items:           items,
 	})
 }
 
@@ -84,8 +128,17 @@ func GetCountries(c *gin.Context) {
 
 	items := arrayFromRows(rows, database)
 
+	country, hasCountry := c.GetQuery("c")
+
+	previousFilters := make([]string, 0)
+
+	if hasCountry {
+		previousFilters = append(previousFilters, country)
+	}
+
 	c.IndentedJSON(http.StatusOK, &analytics.AnalyticsListResponse{
-		Items: items,
+		PreviousFilters: previousFilters,
+		Items:           items,
 	})
 }
 
@@ -101,20 +154,16 @@ func GetReferrers(c *gin.Context) {
 
 	items := arrayFromRows(rows, database)
 
-	c.IndentedJSON(http.StatusOK, &analytics.AnalyticsListResponse{
-		Items: items,
-	})
-}
+	referrer, hasReferrer := c.GetQuery("r")
 
-func arrayFromRows(rows *sql.Rows, database *db.Database) []*analytics.AnalyticsItem {
-	defer rows.Close()
-	list := make([]*analytics.AnalyticsItem, 0)
-	for rows.Next() {
-		var output analytics.AnalyticsItem
+	previousFilters := make([]string, 0)
 
-		database.Scan(rows, &output)
-
-		list = append(list, &output)
+	if hasReferrer {
+		previousFilters = append(previousFilters, referrer)
 	}
-	return list
+
+	c.IndentedJSON(http.StatusOK, &analytics.AnalyticsListResponse{
+		PreviousFilters: previousFilters,
+		Items:           items,
+	})
 }

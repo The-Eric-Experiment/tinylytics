@@ -4,10 +4,9 @@ import { Filters, Periods } from "../api/types";
 import { FilterBar } from "../components/filter-bar/filer-bar";
 import { Browsers } from "../components/sections/browsers";
 import { Countries } from "../components/sections/countries";
-import { OSs } from "../components/sections/os";
+import { OS } from "../components/sections/os";
 import { Referrers } from "../components/sections/referrers";
 import { Summary } from "../components/sections/summary";
-import { SuspenseCard } from "../components/sections/suspense-card";
 import {
   Card,
   GridItem,
@@ -62,40 +61,30 @@ export const AnalyticsPage: FunctionComponent<AnalyticsPageProps> = () => {
         />
       </PageHeader>
       <PageGrid>
-        <Suspense fallback={<div>Loading...</div>}>
-          <Summary domain={domain} filters={filters} />
-        </Suspense>
+        <Summary domain={domain} filters={filters} />
         <GridItem take={2}>
-          <SuspenseCard>
-            <Browsers
-              domain={domain}
-              filters={filters}
-              onFilter={updateFilters}
-            />
-          </SuspenseCard>
+          <Browsers
+            domain={domain}
+            filters={filters}
+            onFilter={updateFilters}
+          />
         </GridItem>
         <GridItem take={2}>
-          <SuspenseCard>
-            <OSs domain={domain} filters={filters} onFilter={updateFilters} />
-          </SuspenseCard>
+          <OS domain={domain} filters={filters} onFilter={updateFilters} />
         </GridItem>
         <GridItem take={2}>
-          <SuspenseCard>
-            <Countries
-              domain={domain}
-              filters={filters}
-              onFilter={updateFilters}
-            />
-          </SuspenseCard>
+          <Countries
+            domain={domain}
+            filters={filters}
+            onFilter={updateFilters}
+          />
         </GridItem>
         <GridItem take={2}>
-          <SuspenseCard>
-            <Referrers
-              domain={domain}
-              filters={filters}
-              onFilter={updateFilters}
-            />
-          </SuspenseCard>
+          <Referrers
+            domain={domain}
+            filters={filters}
+            onFilter={updateFilters}
+          />
         </GridItem>
       </PageGrid>
     </PageLayout>

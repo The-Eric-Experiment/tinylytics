@@ -4,14 +4,13 @@ export interface Summaries {
 }
 
 export interface AnalyticsData {
-  name: string;
+  value: string;
   count: number;
-  major: number | null;
-  minor: number | null;
-  patch: number | null;
+  drillable: number;
 }
 
 export interface AnalyticsDataResponse {
+  previousFilters: string[];
   items: AnalyticsData[];
 }
 
@@ -35,12 +34,11 @@ export interface Filters {
   p: Periods;
   b?: string;
   bv?: string;
-  c?: string;
-  cv?: string; // get rid of this, country version
   os?: string;
   osv?: string;
+  c?: string;
   r?: string;
-  rv?: string;
+  rfp?: string;
 }
 
 export interface FetcherRequest {

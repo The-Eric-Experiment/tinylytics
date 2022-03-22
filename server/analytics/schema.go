@@ -1,18 +1,19 @@
 package analytics
 
 type SummaryResponse struct {
-	Sessions  int64 `json:"sessions"`
-	PageViews int64 `json:"pageViews"`
+	Sessions           int64 `json:"sessions"`
+	PageViews          int64 `json:"pageViews"`
+	AvgSessionDuration int64 `json:"avgSessionDuration"`
+	BounceRate         int64 `json:"bounceRate"`
 }
 
 type AnalyticsItem struct {
-	Name  string  `json:"name"`
-	Count int64   `json:"count"`
-	Major *string `json:"major"`
-	Minor *string `json:"minor"`
-	Patch *string `json:"patch"`
+	Value     string `json:"value"`
+	Count     int64  `json:"count"`
+	Drillable int64  `json:"drillabel"`
 }
 
 type AnalyticsListResponse struct {
-	Items []*AnalyticsItem `json:"items"`
+	PreviousFilters []string         `json:"previousFilters"`
+	Items           []*AnalyticsItem `json:"items"`
 }

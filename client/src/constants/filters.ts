@@ -8,6 +8,7 @@ export const FILTER_NAMES: Partial<Record<keyof Filters, string>> = {
   osv: "OS Version",
   c: "Country",
   r: "Referrer",
+  rfp: "Referrer",
 };
 
 export const PERIOD_NAMES: Record<Periods, string> = {
@@ -30,6 +31,10 @@ export const DEPENDANT_FILTERS: Partial<
   Record<keyof Filters, Array<keyof Filters>>
 > = {
   b: ["bv"],
-  c: ["cv"],
   os: ["osv"],
+  r: ["rfp"],
 };
+
+export const SHOW_AS_SAME_FILTER: Array<Array<keyof Filters>> = [["r", "rfp"]];
+
+export const SHOW_PREVIOUS_FILTER_IF_EMPTY: Array<keyof Filters> = ["rfp"];

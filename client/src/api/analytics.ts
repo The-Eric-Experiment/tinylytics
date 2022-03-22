@@ -17,10 +17,11 @@ export function fetcher(req: FetcherRequest) {
 export function useGet<T>(
   domain: string,
   endpoint: string,
-  filters: any
+  filters: Filters,
+  suspense = true
 ): SWRResponse<T> {
   return useSWR({ url: `/api/${domain}/${endpoint}`, filters }, fetcher, {
-    suspense: true,
+    suspense,
   });
 }
 
@@ -28,7 +29,7 @@ export function useSummaries(
   domain: string,
   filters: Filters
 ): SWRResponse<Summaries> {
-  return useGet(domain, "summaries", filters);
+  return useGet(domain, "summaries", filters, false);
 }
 
 export function useBrowsers(

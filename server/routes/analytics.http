@@ -1,0 +1,25 @@
+@website = oldavista.com
+@period = alltime
+@port = 8080
+
+GET http://localhost:{{port}}/api/{{website}}/browsers?p={{period}}
+
+GET http://localhost:{{port}}/api/{{website}}/browsers?p={{period}}&b=Netscape
+
+GET http://localhost:{{port}}/api/{{website}}/browsers?p={{period}}&b=Netscape&bv=4
+
+GET http://localhost:{{port}}/api/{{website}}/os?p={{period}}
+
+GET http://localhost:{{port}}/api/{{website}}/os?p={{period}}&os=Windows
+
+GET http://localhost:{{port}}/api/{{website}}/os?p={{period}}&os=Windows&osv=3.1
+
+GET http://localhost:{{port}}/api/{{website}}/countries?p={{period}}
+
+GET http://localhost:{{port}}/api/{{website}}/countries?p={{period}}&c=AU
+
+GET http://localhost:{{port}}/api/{{website}}/referrers?p={{period}}
+
+GET http://localhost:{{port}}/api/{{website}}/referrers?p={{period}}&r=ericexperiment.com
+
+GET http://localhost:{{port}}/api/{{website}}/referrers?p={{period}}&r=ericexperiment.com&rfp=

@@ -1,50 +1,29 @@
 import React, { FunctionComponent } from "react";
 import { useOSs } from "../../api/analytics";
-import { Filters } from "../../api/types";
-import { useAnalyticsFilters } from "../../hooks/analytics-data-hooks";
+import { SuspenseCard } from "../shared/suspense-card";
+import { TableWidget, TableWidgetWrapperProps } from "../shared/table-widget";
 
-interface OSsProps {
+interface OSProps extends TableWidgetWrapperProps {
   domain: string;
-  filters: Filters;
-  onFilter(filters: Partial<Filters>): void;
 }
 
-export const OSs: FunctionComponent<OSsProps> = ({
-  domain,
-  filters,
-  onFilter,
-}) => {
-  const { data } = useOSs(domain, filters);
-  const { getLabel, showAsLink, updateFilter, selectedFilter } =
-    useAnalyticsFilters(filters, { name: "os", version: "osv" }, onFilter);
+export const OSContent: FunctionComponent<OSProps> = ({ domain, ...props }) => {
+  const { data } = useOSs(domain, props.filters);
 
   return (
-    <div>
-      {selectedFilter && <div>{selectedFilter}</div>}
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Count</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data!.items.map((item) => (
-            <tr key={item.name + getLabel(item)}>
-              <td>
-                {showAsLink(item) ? (
-                  <a onClick={updateFilter(item)} type="button" href="">
-                    {getLabel(item)}
-                  </a>
-                ) : (
-                  getLabel(item)
-                )}
-              </td>
-              <td>{item.count}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <TableWidget
+      {...props}
+      data={data}
+      filterPrimary="os"
+      filterSecondary="osv"
+    />
+  );
+};
+
+export const OS: FunctionComponent<OSProps> = (props) => {
+  return (
+    <SuspenseCard>
+      <OSContent {...props} />
+    </SuspenseCard>
   );
 };
