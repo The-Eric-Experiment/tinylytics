@@ -76,6 +76,19 @@ export const TableWidget: FunctionComponent<TableWidgetProps> = ({
     };
   }
 
+  const renderLabel = (item: AnalyticsData) => {
+    const label = getLabel(item);
+    if (!showAsLink(item)) {
+      return label;
+    }
+
+    return (
+      <a onClick={updateFilter(item)} type="button" href="">
+        {label}
+      </a>
+    );
+  };
+
   return (
     <div>
       {hasPreviousFilters && <div>{data.previousFilters.join(", ")}</div>}
@@ -89,15 +102,7 @@ export const TableWidget: FunctionComponent<TableWidgetProps> = ({
         <tbody>
           {data!.items.map((item) => (
             <tr key={item.value + getLabel(item)}>
-              <td>
-                {showAsLink(item) ? (
-                  <a onClick={updateFilter(item)} type="button" href="">
-                    {getLabel(item)}
-                  </a>
-                ) : (
-                  getLabel(item)
-                )}
-              </td>
+              <td>{renderLabel(item)}</td>
               <td>{item.count}</td>
             </tr>
           ))}

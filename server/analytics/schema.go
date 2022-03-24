@@ -10,7 +10,7 @@ type SummaryResponse struct {
 type AnalyticsItem struct {
 	Value     string `json:"value"`
 	Count     int64  `json:"count"`
-	Drillable int64  `json:"drillabel"`
+	Drillable int64  `json:"drillable"`
 }
 
 type AnalyticsListResponse struct {
