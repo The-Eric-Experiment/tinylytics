@@ -1,3 +1,4 @@
+import { Duration } from "luxon";
 import React from "react";
 import { useSummaries } from "../../api/analytics";
 import { Filters } from "../../api/types";
@@ -23,6 +24,12 @@ export function Summary({ domain, filters }: SummaryProps) {
     return <div>{content()}</div>;
   };
 
+  const getAvgSessionDuration = () => {
+    return Duration.fromObject({ seconds: data?.avgSessionDuration }).toFormat(
+      "hh:mm:ss"
+    );
+  };
+
   return (
     <>
       <GridItem take={1}>
@@ -37,12 +44,13 @@ export function Summary({ domain, filters }: SummaryProps) {
       </GridItem>
       <GridItem take={1}>
         <Card>
-          <b>Bounce rate: </b>
+          <b>Bounce rate: </b> {renderCardContent(() => `${data?.bounceRate}%`)}
         </Card>
       </GridItem>
       <GridItem take={1}>
         <Card>
-          <b>Avg Session Duration: </b>
+          <b>Avg Session Duration: </b>{" "}
+          {renderCardContent(getAvgSessionDuration)}
         </Card>
       </GridItem>
     </>

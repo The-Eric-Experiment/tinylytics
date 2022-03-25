@@ -45,10 +45,14 @@ func GetSummaries(c *gin.Context) {
 
 	sessions := database.GetSessions(c)
 	pageViews := database.GetPageViews(c)
+	avgSessionDuration := database.GetAvgSessionDuration(c)
+	bounceRate := database.GetBounceRate(c)
 
 	c.IndentedJSON(http.StatusOK, &analytics.SummaryResponse{
-		Sessions:  sessions,
-		PageViews: pageViews,
+		Sessions:           sessions,
+		PageViews:          pageViews,
+		AvgSessionDuration: avgSessionDuration,
+		BounceRate:         bounceRate,
 	})
 }
 

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 	"tinylytics/constants"
@@ -183,6 +184,30 @@ func (d *Database) GetPageViews(c *gin.Context) int64 {
 
 	q.Count(&count)
 	return count
+}
+
+type Blah struct {
+	Browser  string
+	Duration int64
+}
+
+func (d *Database) GetAvgSessionDuration(c *gin.Context) float64 {
+	q := d.db.Model(&UserSession{})
+	q = setFilters(q, c)
+	var duration float64
+	row := q.Select(`avg((julianday(user_sessions.session_end) - julianday(user_sessions.session_start)) * 86400.0)`).Row()
+	row.Scan(&duration)
+	return duration
+}
+
+func (d *Database) GetBounceRate(c *gin.Context) int64 {
+	q := d.db.Model(&UserSession{})
+	q = setFilters(q, c)
+	var bounces float64
+	var total float64
+	row := q.Select(`sum(CASE WHEN ((julianday(user_sessions.session_end) - julianday(user_sessions.session_start)) * 86400.0) = 0.0 THEN 1 ELSE 0 END) as bounces, count(*) as total`).Row()
+	row.Scan(&bounces, &total)
+	return int64(math.Round((bounces / total) * 100))
 }
 
 func (d *Database) GetBrowsers(c *gin.Context) (*sql.Rows, error) {

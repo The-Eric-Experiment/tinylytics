@@ -1,10 +1,10 @@
 package analytics
 
 type SummaryResponse struct {
-	Sessions           int64 `json:"sessions"`
-	PageViews          int64 `json:"pageViews"`
-	AvgSessionDuration int64 `json:"avgSessionDuration"`
-	BounceRate         int64 `json:"bounceRate"`
+	Sessions           int64   `json:"sessions"`
+	PageViews          int64   `json:"pageViews"`
+	AvgSessionDuration float64 `json:"avgSessionDuration"`
+	BounceRate         int64   `json:"bounceRate"`
 }
 
 type AnalyticsItem struct {

@@ -1,6 +1,8 @@
 @website = oldavista.com
-@period = alltime
+@period = 7d
 @port = 8080
+
+GET http://localhost:{{port}}/api/{{website}}/summaries?p={{period}}
 
 GET http://localhost:{{port}}/api/{{website}}/browsers?p={{period}}
 

@@ -1,6 +1,8 @@
 export interface Summaries {
   pageViews: number;
   sessions: number;
+  avgSessionDuration: number;
+  bounceRate: number;
 }
 
 export interface AnalyticsData {
