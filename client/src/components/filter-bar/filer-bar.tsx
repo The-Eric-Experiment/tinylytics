@@ -3,11 +3,12 @@ import { Filters, Periods } from "../../api/types";
 import {
   DEPENDANT_FILTERS,
   FILTER_NAMES,
-  PERIOD_NAMES,
+  PERIODS,
   SHOW_AS_SAME_FILTER,
   SHOW_PREVIOUS_FILTER_IF_EMPTY,
 } from "../../constants/filters";
 import { Pill } from "../shared/page-layout";
+import { Selector } from "../shared/selector";
 
 type FilterBarProps = {
   filters: Filters;
@@ -77,18 +78,11 @@ export const FilterBar: FunctionComponent<FilterBarProps> = ({
 
   return (
     <>
-      <select
-        onChange={(item) => changePeriod(item.target.value)}
-        value={filters.p}
-      >
-        {(Object.keys(PERIOD_NAMES) as Array<Periods>).map((key) => {
-          return (
-            <option key={key} value={key}>
-              {PERIOD_NAMES[key]}
-            </option>
-          );
-        })}
-      </select>
+      <Selector
+        options={PERIODS}
+        selectedValue={filters.p}
+        onChange={changePeriod}
+      />
       {presentFilters.map((key) => {
         return (
           <Pill key={key}>
