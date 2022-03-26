@@ -7,6 +7,8 @@ interface TableWidgetProps {
   data?: AnalyticsDataResponse;
   filters: Filters;
   showSelfWhenEmpty?: boolean;
+  renderIcon?(item: AnalyticsData): React.ReactNode;
+  formatName?(name: string): string;
   onFilter(filters: Partial<Filters>): void;
 }
 
@@ -22,6 +24,8 @@ export const TableWidget: FunctionComponent<TableWidgetProps> = ({
   data,
   showSelfWhenEmpty,
   filters,
+  renderIcon,
+  formatName,
   onFilter,
 }) => {
   const hasPreviousFilters =
@@ -77,7 +81,12 @@ export const TableWidget: FunctionComponent<TableWidgetProps> = ({
   }
 
   const renderLabel = (item: AnalyticsData) => {
-    const label = getLabel(item);
+    let label: string = getLabel(item);
+
+    if (formatName) {
+      label = formatName(label);
+    }
+
     if (!showAsLink(item)) {
       return label;
     }
@@ -95,6 +104,7 @@ export const TableWidget: FunctionComponent<TableWidgetProps> = ({
       <table>
         <thead>
           <tr>
+            {renderIcon && <th> </th>}
             <th>Name</th>
             <th>Count</th>
           </tr>
@@ -102,6 +112,7 @@ export const TableWidget: FunctionComponent<TableWidgetProps> = ({
         <tbody>
           {data!.items.map((item) => (
             <tr key={item.value + getLabel(item)}>
+              {renderIcon && <td>{renderIcon(item)}</td>}
               <td>{renderLabel(item)}</td>
               <td>{item.count}</td>
             </tr>
