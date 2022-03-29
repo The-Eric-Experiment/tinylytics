@@ -54,7 +54,7 @@ func setFilters(db *gorm.DB, c *gin.Context) *gorm.DB {
 	}
 
 	if hasBrowser {
-		db = db.Where(&UserSession{Browser: getFilterValue(browser)})
+		db = db.Where("user_sessions.browser = ?", getFilterValue(browser))
 
 		if hasBrowserVersion {
 			bver := strings.Split(browserVersion, "/")
@@ -70,7 +70,7 @@ func setFilters(db *gorm.DB, c *gin.Context) *gorm.DB {
 	}
 
 	if hasOS {
-		db = db.Where(&UserSession{OS: getFilterValue(os)})
+		db = db.Where("user_sessions.os = ? ", getFilterValue(os))
 
 		if hasOSVersion {
 			osver := strings.Split(osVersion, "/")
