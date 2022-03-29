@@ -1,7 +1,10 @@
 import React, { FunctionComponent } from "react";
+import styled from "styled-components";
 import { AnalyticsData, AnalyticsDataResponse, Filters } from "../../api/types";
+import { TABLET } from "./page-layout";
 
 interface TableWidgetProps {
+  title: string;
   filterPrimary: keyof Filters;
   filterSecondary?: keyof Filters;
   data?: AnalyticsDataResponse;
@@ -19,6 +22,7 @@ export interface TableWidgetWrapperProps
   > {}
 
 export const TableWidget: FunctionComponent<TableWidgetProps> = ({
+  title,
   filterPrimary,
   filterSecondary,
   data,
@@ -99,26 +103,69 @@ export const TableWidget: FunctionComponent<TableWidgetProps> = ({
   };
 
   return (
-    <div>
+    <Container>
+      <Header>{title}</Header>
       {hasPreviousFilters && <div>{data.previousFilters.join(", ")}</div>}
-      <table>
+      <Table>
         <thead>
           <tr>
-            {renderIcon && <th> </th>}
+            {renderIcon && <th className="icon"> </th>}
             <th>Name</th>
-            <th>Count</th>
+            <th className="count">Sessions</th>
           </tr>
         </thead>
         <tbody>
           {data!.items.map((item) => (
             <tr key={item.value + getLabel(item)}>
-              {renderIcon && <td>{renderIcon(item)}</td>}
+              {renderIcon && <td className="icon">{renderIcon(item)}</td>}
               <td>{renderLabel(item)}</td>
-              <td>{item.count}</td>
+              <td className="value">{item.count}</td>
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+      </Table>
+    </Container>
   );
 };
+
+const Container = styled.div``;
+
+const Header = styled.h3`
+  margin: 0;
+`;
+
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  > thead,
+  > tbody {
+    > tr {
+      > th,
+      > td {
+        border-bottom: 1px solid #ddd;
+        text-align: left;
+        padding: 8px 0;
+      }
+      > th.count,
+      > td.value {
+        text-align: right;
+        font-weight: bold;
+        border-left: 1px solid #ddd;
+        width: 25%;
+        @media all and (min-width: ${TABLET}) {
+          width: 20%;
+        }
+      }
+      > th.icon,
+      > td.icon {
+        width: 20px;
+      }
+
+      &:last-child {
+        > td {
+          border-bottom: 0;
+        }
+      }
+    }
+  }
+`;

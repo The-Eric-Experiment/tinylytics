@@ -1,5 +1,7 @@
 import styled from "styled-components";
 
+export const TABLET = "760px";
+
 export const PageLayout = styled.div`
   display: flex;
   flex-direction: column;
@@ -16,9 +18,13 @@ export const PageHeader = styled.header`
 
 export const PageGrid = styled.section`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
   grid-template-rows: auto;
+  grid-template-columns: repeat(2, 1fr);
   grid-gap: 16px;
+
+  @media all and (min-width: ${TABLET}) {
+    grid-template-columns: repeat(4, 1fr);
+  }
 `;
 
 export const GridItem = styled.div<{ take: number }>`

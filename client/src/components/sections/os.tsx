@@ -13,6 +13,7 @@ export const OSContent: FunctionComponent<OSProps> = ({ domain, ...props }) => {
   return (
     <TableWidget
       {...props}
+      title="Operating System"
       data={data}
       filterPrimary="os"
       filterSecondary="osv"

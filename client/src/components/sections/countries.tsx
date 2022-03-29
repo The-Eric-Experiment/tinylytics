@@ -27,6 +27,7 @@ const CountriesContent: FunctionComponent<CountriesProps> = ({
   return (
     <TableWidget
       {...props}
+      title="Countries"
       data={data}
       renderIcon={renderIcon}
       formatName={formatName}

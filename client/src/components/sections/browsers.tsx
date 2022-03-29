@@ -16,6 +16,7 @@ const BrowsersContent: FunctionComponent<BrowsersProps> = ({
   return (
     <TableWidget
       {...props}
+      title="Browsers"
       data={data}
       filterPrimary="b"
       filterSecondary="bv"

@@ -17,6 +17,7 @@ const ReferrersContent: FunctionComponent<ReferrersProps> = ({
     <TableWidget
       {...props}
       data={data}
+      title="Referrers"
       filterPrimary="r"
       filterSecondary="rfp"
       showSelfWhenEmpty
