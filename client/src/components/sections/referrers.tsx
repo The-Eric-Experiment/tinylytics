@@ -3,7 +3,7 @@ import { useReferrers } from "../../api/analytics";
 import { SuspenseCard } from "../shared/suspense-card";
 import { TableWidget, TableWidgetWrapperProps } from "../shared/table-widget";
 
-interface ReferrersProps extends TableWidgetWrapperProps {
+interface ReferrersProps extends Omit<TableWidgetWrapperProps, "title"> {
   domain: string;
 }
 

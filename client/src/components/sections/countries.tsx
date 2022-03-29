@@ -6,7 +6,7 @@ import { COUNTRIES } from "../../constants/countries";
 import { SuspenseCard } from "../shared/suspense-card";
 import { TableWidget, TableWidgetWrapperProps } from "../shared/table-widget";
 
-interface CountriesProps extends TableWidgetWrapperProps {
+interface CountriesProps extends Omit<TableWidgetWrapperProps, "title"> {
   domain: string;
 }
 

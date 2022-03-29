@@ -3,7 +3,7 @@ import { useBrowsers } from "../../api/analytics";
 import { SuspenseCard } from "../shared/suspense-card";
 import { TableWidget, TableWidgetWrapperProps } from "../shared/table-widget";
 
-interface BrowsersProps extends TableWidgetWrapperProps {
+interface BrowsersProps extends Omit<TableWidgetWrapperProps, "title"> {
   domain: string;
 }
 

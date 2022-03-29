@@ -3,7 +3,7 @@ import { useOSs } from "../../api/analytics";
 import { SuspenseCard } from "../shared/suspense-card";
 import { TableWidget, TableWidgetWrapperProps } from "../shared/table-widget";
 
-interface OSProps extends TableWidgetWrapperProps {
+interface OSProps extends Omit<TableWidgetWrapperProps, "title"> {
   domain: string;
 }
 
