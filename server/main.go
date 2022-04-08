@@ -77,8 +77,11 @@ func main() {
 		api.GET("/:domain/referrers", routes.GetReferrers)
 	}
 
-	router.NoRoute(static.Serve("/", static.LocalFile("./client", false))) // static files have higher priority over dynamic routes
-	router.Use(static.Serve("/", static.LocalFile("./client", true)))      // when no route is found, serving static files is tried.
+	// I don't like this, maybe change to echo
+	router.Use(static.Serve("/", static.LocalFile("./client", true)))
+	router.NoRoute(func(c *gin.Context) {
+		c.File("./client/index.html")
+	})
 
 	eventQueue.Listen(event.ProcessEvent)
 
