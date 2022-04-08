@@ -12,8 +12,8 @@ type UserConfig struct {
 }
 
 type WebsiteConfig struct {
-	Domain string `yaml:"domain"`
-	Title  string `yaml:"title"`
+	Domain string `yaml:"domain" json:"domain"`
+	Title  string `yaml:"title" json:"title"`
 }
 
 type TinylyticsConfig struct {

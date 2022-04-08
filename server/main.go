@@ -66,11 +66,13 @@ func init() {
 func main() {
 	router := gin.Default()
 
-	router.Use(static.Serve("/", static.LocalFile("./client", true)))
+	router.NoRoute(static.Serve("/", static.LocalFile("./client", false))) // static files have higher priority over dynamic routes
+	// router.NoRoute(static.Serve("/", static.LocalFile("./client", true))) // when no route is found, serving static files is tried.
 
 	api := router.Group("/api")
 	{
 		api.POST("/event", routes.PostEvent(&eventQueue))
+		api.GET("/sites", routes.GetWebsites)
 		api.GET("/:domain/summaries", routes.GetSummaries)
 		api.GET("/:domain/browsers", routes.GetBrowsers)
 		api.GET("/:domain/os", routes.GetOSs)

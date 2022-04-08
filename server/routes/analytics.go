@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 	"tinylytics/analytics"
+	"tinylytics/config"
 	"tinylytics/db"
 	"tinylytics/helpers"
 
@@ -170,4 +171,9 @@ func GetReferrers(c *gin.Context) {
 		PreviousFilters: previousFilters,
 		Items:           items,
 	})
+}
+
+func GetWebsites(c *gin.Context) {
+	sites := config.Config.Websites
+	c.IndentedJSON(http.StatusOK, &sites)
 }
