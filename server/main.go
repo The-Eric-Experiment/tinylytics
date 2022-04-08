@@ -66,9 +66,6 @@ func init() {
 func main() {
 	router := gin.Default()
 
-	router.NoRoute(static.Serve("/", static.LocalFile("./client", false))) // static files have higher priority over dynamic routes
-	// router.NoRoute(static.Serve("/", static.LocalFile("./client", true))) // when no route is found, serving static files is tried.
-
 	api := router.Group("/api")
 	{
 		api.POST("/event", routes.PostEvent(&eventQueue))
@@ -79,6 +76,9 @@ func main() {
 		api.GET("/:domain/countries", routes.GetCountries)
 		api.GET("/:domain/referrers", routes.GetReferrers)
 	}
+
+	router.NoRoute(static.Serve("/", static.LocalFile("./client", false))) // static files have higher priority over dynamic routes
+	router.Use(static.Serve("/", static.LocalFile("./client", true)))      // when no route is found, serving static files is tried.
 
 	eventQueue.Listen(event.ProcessEvent)
 
