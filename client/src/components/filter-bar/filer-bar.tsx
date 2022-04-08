@@ -1,4 +1,5 @@
-import React, { FunctionComponent, useMemo } from "react";
+import React, { FunctionComponent, Suspense, useEffect, useMemo } from "react";
+
 import { Filters, Periods } from "../../api/types";
 import {
   DEPENDANT_FILTERS,
@@ -9,6 +10,7 @@ import {
 } from "../../constants/filters";
 import { Pill } from "../shared/page-layout";
 import { Selector } from "../shared/selector";
+import { WebsiteSelector } from "./website-selector";
 
 type FilterBarProps = {
   filters: Filters;
@@ -78,6 +80,7 @@ export const FilterBar: FunctionComponent<FilterBarProps> = ({
 
   return (
     <>
+      <WebsiteSelector />
       <Selector
         options={PERIODS}
         selectedValue={filters.p}

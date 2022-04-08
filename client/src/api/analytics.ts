@@ -5,6 +5,7 @@ import {
   FetcherRequest,
   Filters,
   Summaries,
+  Website,
 } from "./types";
 
 export function fetcher(req: FetcherRequest) {
@@ -58,4 +59,10 @@ export function useReferrers(
   filters: Filters
 ): SWRResponse<AnalyticsDataResponse> {
   return useGet(domain, "referrers", filters);
+}
+
+export function useWebsites(): SWRResponse<Website[]> {
+  return useSWR({ url: `/api/sites` }, fetcher, {
+    suspense: true,
+  });
 }

@@ -1,5 +1,7 @@
-import React, { FunctionComponent, Suspense, useMemo } from "react";
+import React, { FunctionComponent, useEffect, useMemo } from "react";
+import { useNavigate, useParams } from "react-router";
 import { useSearchParams } from "react-router-dom";
+import { useWebsites } from "../api/analytics";
 import { Filters, Periods } from "../api/types";
 import { FilterBar } from "../components/filter-bar/filer-bar";
 import { Browsers } from "../components/sections/browsers";
@@ -8,7 +10,6 @@ import { OS } from "../components/sections/os";
 import { Referrers } from "../components/sections/referrers";
 import { Summary } from "../components/sections/summary";
 import {
-  Card,
   GridItem,
   PageGrid,
   PageHeader,
@@ -19,7 +20,16 @@ import { DEPENDANT_FILTERS } from "../constants/filters";
 export interface AnalyticsPageProps {}
 
 export const AnalyticsPage: FunctionComponent<AnalyticsPageProps> = () => {
-  const domain = "oldavista.com";
+  const params = useParams();
+  const navigate = useNavigate();
+  const { data } = useWebsites();
+
+  useEffect(() => {
+    if (!params.domain) {
+      const site = data ? data[0] : undefined;
+      navigate(`/${site ? site.domain : ""}`);
+    }
+  }, [params.domain]);
   const [searchParams, setSearchParams] = useSearchParams({
     p: Periods.P24H,
   });
@@ -51,6 +61,10 @@ export const AnalyticsPage: FunctionComponent<AnalyticsPageProps> = () => {
     setSearchParams(params, { replace: true });
   };
 
+  if (!params.domain) {
+    return null;
+  }
+
   return (
     <PageLayout>
       <PageHeader>
@@ -61,27 +75,31 @@ export const AnalyticsPage: FunctionComponent<AnalyticsPageProps> = () => {
         />
       </PageHeader>
       <PageGrid>
-        <Summary domain={domain} filters={filters} />
+        <Summary domain={params.domain} filters={filters} />
         <GridItem take={2}>
           <Browsers
-            domain={domain}
+            domain={params.domain}
             filters={filters}
             onFilter={updateFilters}
           />
         </GridItem>
         <GridItem take={2}>
-          <OS domain={domain} filters={filters} onFilter={updateFilters} />
+          <OS
+            domain={params.domain}
+            filters={filters}
+            onFilter={updateFilters}
+          />
         </GridItem>
         <GridItem take={2}>
           <Countries
-            domain={domain}
+            domain={params.domain}
             filters={filters}
             onFilter={updateFilters}
           />
         </GridItem>
         <GridItem take={2}>
           <Referrers
-            domain={domain}
+            domain={params.domain}
             filters={filters}
             onFilter={updateFilters}
           />

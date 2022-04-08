@@ -47,3 +47,8 @@ export interface FetcherRequest {
   url: string;
   filters: Filters;
 }
+
+export interface Website {
+  domain: string;
+  title: string;
+}
