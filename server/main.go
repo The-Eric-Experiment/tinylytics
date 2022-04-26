@@ -74,6 +74,7 @@ func main() {
 		api.GET("/:domain/browsers", routes.GetBrowsers)
 		api.GET("/:domain/os", routes.GetOSs)
 		api.GET("/:domain/countries", routes.GetCountries)
+		api.GET("/:domain/pages", routes.GetPages)
 		api.GET("/:domain/referrers", routes.GetReferrers)
 	}
 
@@ -85,7 +86,7 @@ func main() {
 
 	eventQueue.Listen(event.ProcessEvent)
 
-	router.Run()
+	router.Run("0.0.0.0:8008")
 }
 
 // PrintMemUsage outputs the current, total and OS memory being used. As well as the number

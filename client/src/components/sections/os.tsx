@@ -1,6 +1,6 @@
-import React, { FunctionComponent } from "react";
+import React, { FunctionComponent, Suspense } from "react";
 import { useOSs } from "../../api/analytics";
-import { SuspenseCard } from "../shared/suspense-card";
+import { SuspenseWindow } from "../shared/suspense-window";
 import { TableWidget, TableWidgetWrapperProps } from "../shared/table-widget";
 
 interface OSProps extends Omit<TableWidgetWrapperProps, "title"> {
@@ -13,7 +13,6 @@ export const OSContent: FunctionComponent<OSProps> = ({ domain, ...props }) => {
   return (
     <TableWidget
       {...props}
-      title="Operating System"
       data={data}
       filterPrimary="os"
       filterSecondary="osv"
@@ -23,8 +22,8 @@ export const OSContent: FunctionComponent<OSProps> = ({ domain, ...props }) => {
 
 export const OS: FunctionComponent<OSProps> = (props) => {
   return (
-    <SuspenseCard>
+    <SuspenseWindow title="Operating Systems">
       <OSContent {...props} />
-    </SuspenseCard>
+    </SuspenseWindow>
   );
 };

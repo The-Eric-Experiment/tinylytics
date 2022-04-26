@@ -1,7 +1,7 @@
 import React, { FunctionComponent, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Select, SelectOption } from "react95";
 import { useWebsites } from "../../api/analytics";
-import { Selector } from "../shared/selector";
 
 type WebsiteSelectorProps = {};
 
@@ -13,24 +13,34 @@ export const WebsiteSelector: FunctionComponent<
   const params = useParams();
 
   const selected = websites.find((o) => o.domain === params.domain)!;
-  console.log(selected);
 
-  const options = useMemo(() => {
+  const options: SelectOption<string>[] = useMemo(() => {
     return websites.map((o) => ({
       label: o.title,
       value: o.domain,
     }));
   }, [websites]);
 
-  const changeSite = (value: string) => {
-    navigate(`/${value}`);
+  const changeSite = (
+    _: React.FormEvent,
+    nextSelection: SelectOption<string>
+  ) => {
+    navigate(`/${nextSelection.value}`);
   };
 
   return (
-    <Selector
+    <Select
+      defaultValue={selected.domain}
       options={options}
-      selectedValue={selected?.domain}
-      onChange={changeSite}
+      menuMaxHeight={160}
+      width={160}
+      onChange={
+        changeSite as React.ChangeEventHandler<HTMLInputElement> &
+          ((
+            e: React.FormEvent<Element>,
+            nextSelection: SelectOption<string>
+          ) => void)
+      }
     />
   );
 };

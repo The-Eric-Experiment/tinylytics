@@ -60,6 +60,12 @@ export function useReferrers(
 ): SWRResponse<AnalyticsDataResponse> {
   return useGet(domain, "referrers", filters);
 }
+export function usePages(
+  domain: string,
+  filters: Filters
+): SWRResponse<AnalyticsDataResponse> {
+  return useGet(domain, "pages", filters);
+}
 
 export function useWebsites(): SWRResponse<Website[]> {
   return useSWR({ url: `/api/sites` }, fetcher, {

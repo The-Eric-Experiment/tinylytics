@@ -7,6 +7,7 @@ import { FilterBar } from "../components/filter-bar/filer-bar";
 import { Browsers } from "../components/sections/browsers";
 import { Countries } from "../components/sections/countries";
 import { OS } from "../components/sections/os";
+import { Pages } from "../components/sections/pages";
 import { Referrers } from "../components/sections/referrers";
 import { Summary } from "../components/sections/summary";
 import {
@@ -91,7 +92,7 @@ export const AnalyticsPage: FunctionComponent<AnalyticsPageProps> = () => {
           />
         </GridItem>
         <GridItem take={2}>
-          <Countries
+          <Pages
             domain={params.domain}
             filters={filters}
             onFilter={updateFilters}
@@ -99,6 +100,13 @@ export const AnalyticsPage: FunctionComponent<AnalyticsPageProps> = () => {
         </GridItem>
         <GridItem take={2}>
           <Referrers
+            domain={params.domain}
+            filters={filters}
+            onFilter={updateFilters}
+          />
+        </GridItem>
+        <GridItem take={4}>
+          <Countries
             domain={params.domain}
             filters={filters}
             onFilter={updateFilters}

@@ -41,6 +41,7 @@ export interface Filters {
   c?: string;
   r?: string;
   rfp?: string;
+  pg?: string;
 }
 
 export interface FetcherRequest {

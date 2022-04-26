@@ -173,6 +173,32 @@ func GetReferrers(c *gin.Context) {
 	})
 }
 
+func GetPages(c *gin.Context) {
+	database := getDB(c)
+	defer database.Close()
+
+	rows, err := database.GetPages(c)
+
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Couldn't get Pages")
+	}
+
+	items := arrayFromRows(rows, database)
+
+	path, hasPath := c.GetQuery("pg")
+
+	previousFilters := make([]string, 0)
+
+	if hasPath {
+		previousFilters = append(previousFilters, path)
+	}
+
+	c.IndentedJSON(http.StatusOK, &analytics.AnalyticsListResponse{
+		PreviousFilters: previousFilters,
+		Items:           items,
+	})
+}
+
 func GetWebsites(c *gin.Context) {
 	sites := config.Config.Websites
 	c.IndentedJSON(http.StatusOK, &sites)

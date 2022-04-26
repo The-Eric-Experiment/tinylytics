@@ -1,6 +1,6 @@
 import React, { FunctionComponent } from "react";
 import { useBrowsers } from "../../api/analytics";
-import { SuspenseCard } from "../shared/suspense-card";
+import { SuspenseWindow } from "../shared/suspense-window";
 import { TableWidget, TableWidgetWrapperProps } from "../shared/table-widget";
 
 interface BrowsersProps extends Omit<TableWidgetWrapperProps, "title"> {
@@ -16,7 +16,6 @@ const BrowsersContent: FunctionComponent<BrowsersProps> = ({
   return (
     <TableWidget
       {...props}
-      title="Browsers"
       data={data}
       filterPrimary="b"
       filterSecondary="bv"
@@ -26,8 +25,8 @@ const BrowsersContent: FunctionComponent<BrowsersProps> = ({
 
 export const Browsers: FunctionComponent<BrowsersProps> = (props) => {
   return (
-    <SuspenseCard>
+    <SuspenseWindow title="Browsers">
       <BrowsersContent {...props} />
-    </SuspenseCard>
+    </SuspenseWindow>
   );
 };

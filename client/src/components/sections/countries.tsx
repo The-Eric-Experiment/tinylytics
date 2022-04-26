@@ -1,10 +1,17 @@
 import React, { FunctionComponent } from "react";
 import Flag from "react-world-flags";
+import { Panel } from "react95";
+import styled from "styled-components";
 import { useCountries } from "../../api/analytics";
 import { AnalyticsData } from "../../api/types";
 import { COUNTRIES } from "../../constants/countries";
-import { SuspenseCard } from "../shared/suspense-card";
-import { TableWidget, TableWidgetWrapperProps } from "../shared/table-widget";
+import AnalyticsTable from "../shared/analytics-table";
+import { SuspenseWindow } from "../shared/suspense-window";
+import {
+  TableWidgetContainer,
+  TableWidgetWrapperProps,
+} from "../shared/table-widget";
+import { WorldMap } from "../world-map/world-map";
 
 interface CountriesProps extends Omit<TableWidgetWrapperProps, "title"> {
   domain: string;
@@ -16,6 +23,9 @@ const CountriesContent: FunctionComponent<CountriesProps> = ({
 }) => {
   const { data } = useCountries(domain, props.filters);
 
+  const hasPreviousFilters =
+    data?.previousFilters && data.previousFilters.length > 0;
+
   const renderIcon = (item: AnalyticsData) => (
     <Flag code={item.value} width={16} />
   );
@@ -25,22 +35,45 @@ const CountriesContent: FunctionComponent<CountriesProps> = ({
   };
 
   return (
-    <TableWidget
-      {...props}
-      title="Countries"
-      data={data}
-      renderIcon={renderIcon}
-      formatName={formatName}
-      filterPrimary="c"
-      showSelfWhenEmpty
-    />
+    <Container>
+      {hasPreviousFilters && <div>{data.previousFilters.join(", ")}</div>}
+      <Row>
+        <Panel variant="well">
+          <WorldMap data={data?.items} />
+        </Panel>
+        <TableWidgetContainer>
+          <AnalyticsTable
+            {...props}
+            data={data}
+            renderIcon={renderIcon}
+            formatName={formatName}
+            filterPrimary="c"
+            showSelfWhenEmpty
+          />
+        </TableWidgetContainer>
+      </Row>
+    </Container>
   );
 };
 
 export const Countries: FunctionComponent<CountriesProps> = (props) => {
   return (
-    <SuspenseCard>
+    <SuspenseWindow title="Countries">
       <CountriesContent {...props} />
-    </SuspenseCard>
+    </SuspenseWindow>
   );
 };
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const Row = styled.div`
+  gap: 20px;
+  display: flex;
+  flex-direction: row;
+  & > div {
+    flex: 1;
+  }
+`;

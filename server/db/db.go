@@ -28,13 +28,14 @@ func getFilterValue(input string) string {
 	return input
 }
 
-func setFilters(db *gorm.DB, c *gin.Context) *gorm.DB {
+func setFilters(db *gorm.DB, c *gin.Context, usePageFilter bool) *gorm.DB {
 	browser, hasBrowser := c.GetQuery("b")
 	browserVersion, hasBrowserVersion := c.GetQuery("bv")
 	os, hasOS := c.GetQuery("os")
 	osVersion, hasOSVersion := c.GetQuery("osv")
 	country, hasCountry := c.GetQuery("c")
 	period, hasPeriod := c.GetQuery("p")
+	page, hasPage := c.GetQuery("pg")
 	referer, hasReferer := c.GetQuery("r")
 	refererFullPath, hasRefererFullPath := c.GetQuery("rfp")
 
@@ -91,10 +92,14 @@ func setFilters(db *gorm.DB, c *gin.Context) *gorm.DB {
 
 	if hasReferer {
 		db = db.Where("user_sessions.referer = ?", getFilterValue(referer))
-		db = db.Where(&UserSession{Referer: referer})
 		if hasRefererFullPath {
 			db = db.Where("referer_full_path = ?", getFilterValue(refererFullPath))
 		}
+	}
+
+	if hasPage && usePageFilter {
+		db = db.Joins("left join user_events on user_sessions.id = user_events.session_id")
+		db = db.Where("user_events.page", page)
 	}
 
 	return db
@@ -170,7 +175,7 @@ func (d *Database) GetSessions(c *gin.Context) int64 {
 	var count int64
 	q := d.db.Model(&UserSession{})
 
-	q = setFilters(q, c)
+	q = setFilters(q, c, true)
 
 	q.Count(&count)
 	return count
@@ -180,7 +185,13 @@ func (d *Database) GetPageViews(c *gin.Context) int64 {
 	var count int64
 	q := d.db.Model(&UserEvent{}).Joins("left join user_sessions on user_sessions.id = user_events.session_id").Where(&UserEvent{Name: "pageview"})
 
-	q = setFilters(q, c)
+	q = setFilters(q, c, false)
+
+	page, hasPage := c.GetQuery("pg")
+
+	if hasPage {
+		q = q.Where("user_events.page = ?", page)
+	}
 
 	q.Count(&count)
 	return count
@@ -193,7 +204,7 @@ type Blah struct {
 
 func (d *Database) GetAvgSessionDuration(c *gin.Context) float64 {
 	q := d.db.Model(&UserSession{})
-	q = setFilters(q, c)
+	q = setFilters(q, c, true)
 	var duration float64
 	row := q.Select(`avg((julianday(user_sessions.session_end) - julianday(user_sessions.session_start)) * 86400.0)`).Row()
 	row.Scan(&duration)
@@ -202,7 +213,7 @@ func (d *Database) GetAvgSessionDuration(c *gin.Context) float64 {
 
 func (d *Database) GetBounceRate(c *gin.Context) int64 {
 	q := d.db.Model(&UserSession{})
-	q = setFilters(q, c)
+	q = setFilters(q, c, true)
 	var bounces float64
 	var total float64
 	row := q.Select(`sum(CASE WHEN ((julianday(user_sessions.session_end) - julianday(user_sessions.session_start)) * 86400.0) = 0.0 THEN 1 ELSE 0 END) as bounces, count(*) as total`).Row()
@@ -221,7 +232,7 @@ func (d *Database) GetBrowsers(c *gin.Context) (*sql.Rows, error) {
 		"SUM(CASE WHEN user_sessions.browser_major <> '' AND user_sessions.browser_major <> '0' THEN 1 ELSE 0 END) AS drillable",
 	)
 
-	q = setFilters(q, c).Limit(20)
+	q = setFilters(q, c, true).Limit(20)
 
 	_, hasBrowser := c.GetQuery("b")
 	browserVersion, hasBrowserVersion := c.GetQuery("bv")
@@ -263,7 +274,7 @@ func (d *Database) GetOSs(c *gin.Context) (*sql.Rows, error) {
 		Expression: clause.Expr{SQL: "count desc", WithoutParentheses: true},
 	})
 
-	q = setFilters(q, c).Limit(20)
+	q = setFilters(q, c, true).Limit(20)
 
 	q = selector(q,
 		"user_sessions.os as value",
@@ -310,7 +321,7 @@ func (d *Database) GetCountries(c *gin.Context) (*sql.Rows, error) {
 		Expression: clause.Expr{SQL: "count desc", WithoutParentheses: true},
 	}).Group("country").Limit(20)
 
-	q = setFilters(q, c)
+	q = setFilters(q, c, true)
 
 	q = selector(q,
 		"user_sessions.country as value",
@@ -332,7 +343,7 @@ func (d *Database) GetReferrers(c *gin.Context) (*sql.Rows, error) {
 		"SUM(CASE WHEN user_sessions.referer_full_path <> '' THEN 1 ELSE 0 END) AS drillable",
 	)
 
-	q = setFilters(q, c)
+	q = setFilters(q, c, true)
 
 	_, hasReferrer := c.GetQuery("r")
 
@@ -346,6 +357,28 @@ func (d *Database) GetReferrers(c *gin.Context) (*sql.Rows, error) {
 			"count(user_sessions.referer_full_path) as count",
 			"0 AS drillable",
 		)
+	}
+
+	return q.Rows()
+}
+
+func (d *Database) GetPages(c *gin.Context) (*sql.Rows, error) {
+	q := d.db.Model(&UserEvent{}).Joins("left join user_sessions on user_sessions.id = user_events.session_id").Clauses(clause.OrderBy{
+		Expression: clause.Expr{SQL: "count desc", WithoutParentheses: true},
+	}).Where(&UserEvent{Name: "pageview"}).Group("page").Limit(20)
+
+	q = selector(q,
+		"user_events.page as value",
+		"count(user_events.page) as count",
+		"0 AS drillable",
+	)
+
+	q = setFilters(q, c, false)
+
+	page, hasPage := c.GetQuery("pg")
+
+	if hasPage {
+		q = q.Where("user_events.page = ?", page)
 	}
 
 	return q.Rows()

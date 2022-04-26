@@ -1,6 +1,6 @@
 import React, { FunctionComponent } from "react";
 import { useReferrers } from "../../api/analytics";
-import { SuspenseCard } from "../shared/suspense-card";
+import { SuspenseWindow } from "../shared/suspense-window";
 import { TableWidget, TableWidgetWrapperProps } from "../shared/table-widget";
 
 interface ReferrersProps extends Omit<TableWidgetWrapperProps, "title"> {
@@ -17,7 +17,6 @@ const ReferrersContent: FunctionComponent<ReferrersProps> = ({
     <TableWidget
       {...props}
       data={data}
-      title="Referrers"
       filterPrimary="r"
       filterSecondary="rfp"
       showSelfWhenEmpty
@@ -27,8 +26,8 @@ const ReferrersContent: FunctionComponent<ReferrersProps> = ({
 
 export const Referrers: FunctionComponent<ReferrersProps> = (props) => {
   return (
-    <SuspenseCard>
+    <SuspenseWindow title="Referrers">
       <ReferrersContent {...props} />
-    </SuspenseCard>
+    </SuspenseWindow>
   );
 };

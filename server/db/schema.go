@@ -32,7 +32,7 @@ type UserEvent struct {
 	gorm.Model
 	ID        string `gorm:"primaryKey"`
 	Name      string `gorm:"index"`
-	Page      string
+	Page      string `gorm:"index"`
 	EventTime time.Time
 	SessionID string
 	Session   UserSession `gorm:"foreignKey:SessionID;references:ID"`

@@ -8,6 +8,8 @@ export const PageLayout = styled.div`
   align-items: stretch;
   gap: 16px;
   padding: 16px;
+  width: 100%;
+  max-width: 1600px;
 `;
 
 export const PageHeader = styled.header`

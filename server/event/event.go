@@ -2,6 +2,8 @@ package event
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 	"tinylytics/db"
 	"tinylytics/geo"
@@ -91,9 +93,20 @@ func ProcessEvent(item *ClientInfo) {
 
 	database.UpdateUserSession(session)
 
+	var page = item.Page
+
+	path, err := url.Parse(page)
+
+	if err == nil {
+		page = strings.Join([]string{
+			strings.Trim(item.Domain, "/"),
+			strings.Trim(path.Path, "/"),
+		}, "/")
+	}
+
 	database.SaveEvent(&db.UserEvent{
 		ID:        uuid.NewString(),
-		Page:      item.Page,
+		Page:      page,
 		Name:      item.Name,
 		EventTime: item.Time,
 	}, session.ID)
