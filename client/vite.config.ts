@@ -14,7 +14,8 @@ export default defineConfig({
     host: "0.0.0.0",
     proxy: {
       "/api": {
-        target: "http://192.168.1.60:8008/",
+        // target: "http://192.168.1.60:8008/",
+        target: "https://analytics.ericexperiment.com/",
         changeOrigin: true,
         secure: false,
       },

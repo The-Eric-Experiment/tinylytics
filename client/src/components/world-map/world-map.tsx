@@ -53,7 +53,7 @@ export const WorldMap: FunctionComponent<WorldMapProps> = ({ data }) => {
   return (
     <Container data-tip="" data-for="world-map-tooltip">
       <ComposableMap projection="geoMercator">
-        <ZoomableGroup zoom={0.8} minZoom={0.7} center={[0, 40]}>
+        <ZoomableGroup zoom={0.8} minZoom={0.7} center={[0, 40]} disableZooming>
           <Geographies geography={`/worldmap.json`}>
             {({ geographies }) => {
               return geographies.map((geo) => {

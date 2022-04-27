@@ -6,6 +6,7 @@ import { useCountries } from "../../api/analytics";
 import { AnalyticsData } from "../../api/types";
 import { COUNTRIES } from "../../constants/countries";
 import AnalyticsTable from "../shared/analytics-table";
+import { LANDSCAPE } from "../shared/page-layout";
 import { SuspenseWindow } from "../shared/suspense-window";
 import {
   TableWidgetContainer,
@@ -72,7 +73,12 @@ const Container = styled.div`
 const Row = styled.div`
   gap: 20px;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+
+  @media all and (min-width: ${LANDSCAPE}) {
+    flex-direction: row;
+  }
+
   & > div {
     flex: 1;
   }

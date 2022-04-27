@@ -11,7 +11,8 @@ import { Pages } from "../components/sections/pages";
 import { Referrers } from "../components/sections/referrers";
 import { Summary } from "../components/sections/summary";
 import {
-  GridItem,
+  GridItemX2,
+  GridItemX4,
   PageGrid,
   PageHeader,
   PageLayout,
@@ -77,41 +78,41 @@ export const AnalyticsPage: FunctionComponent<AnalyticsPageProps> = () => {
       </PageHeader>
       <PageGrid>
         <Summary domain={params.domain} filters={filters} />
-        <GridItem take={2}>
+        <GridItemX2>
           <Browsers
             domain={params.domain}
             filters={filters}
             onFilter={updateFilters}
           />
-        </GridItem>
-        <GridItem take={2}>
+        </GridItemX2>
+        <GridItemX2>
           <OS
             domain={params.domain}
             filters={filters}
             onFilter={updateFilters}
           />
-        </GridItem>
-        <GridItem take={2}>
+        </GridItemX2>
+        <GridItemX2>
           <Pages
             domain={params.domain}
             filters={filters}
             onFilter={updateFilters}
           />
-        </GridItem>
-        <GridItem take={2}>
+        </GridItemX2>
+        <GridItemX2>
           <Referrers
             domain={params.domain}
             filters={filters}
             onFilter={updateFilters}
           />
-        </GridItem>
-        <GridItem take={4}>
+        </GridItemX2>
+        <GridItemX4>
           <Countries
             domain={params.domain}
             filters={filters}
             onFilter={updateFilters}
           />
-        </GridItem>
+        </GridItemX4>
       </PageGrid>
     </PageLayout>
   );
