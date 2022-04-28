@@ -18,10 +18,10 @@ interface WorldMapProps {
 export const WorldMap: FunctionComponent<WorldMapProps> = ({ data }) => {
   const [tooltip, setTooltip] = useState<string | null>(null);
   const colors = {
-    baseColor: "#0027F5",
-    fillColor: "#EEEEEE",
-    strokeColor: "#060084",
-    hoverColor: "#FFF",
+    baseColor: "#01FF00",
+    fillColor: "#008000",
+    strokeColor: "#008000",
+    hoverColor: "#01FF00",
   };
 
   function getFillColor(code: string) {
@@ -52,31 +52,35 @@ export const WorldMap: FunctionComponent<WorldMapProps> = ({ data }) => {
 
   return (
     <Container data-tip="" data-for="world-map-tooltip">
-      <ComposableMap projection="geoMercator">
-        <ZoomableGroup zoom={0.8} minZoom={0.7} center={[0, 40]} disableZooming>
-          <Geographies geography={`/worldmap.json`}>
-            {({ geographies }) => {
-              return geographies.map((geo) => {
-                return (
-                  <Geography
-                    key={geo.rsmKey}
-                    geography={geo}
-                    fill={getFillColor(geo.id)}
-                    stroke={colors.strokeColor}
-                    opacity={getOpacity(geo.id)}
-                    style={{
-                      default: { outline: "none" },
-                      hover: { outline: "none", fill: colors.hoverColor },
-                      pressed: { outline: "none" },
-                    }}
-                    onMouseOver={() => handleHover(geo.id)}
-                    onMouseOut={() => setTooltip(null)}
-                  />
-                );
-              });
-            }}
-          </Geographies>
-        </ZoomableGroup>
+      <ComposableMap
+        projection="geoMercator"
+        projectionConfig={{
+          center: [0, 40],
+          scale: 120,
+        }}
+      >
+        <Geographies geography={`/worldmap.json`}>
+          {({ geographies }) => {
+            return geographies.map((geo) => {
+              return (
+                <Geography
+                  key={geo.rsmKey}
+                  geography={geo}
+                  fill={getFillColor(geo.id)}
+                  stroke={colors.strokeColor}
+                  opacity={getOpacity(geo.id)}
+                  style={{
+                    default: { outline: "none" },
+                    hover: { outline: "none", fill: colors.hoverColor },
+                    pressed: { outline: "none" },
+                  }}
+                  onMouseOver={() => handleHover(geo.id)}
+                  onMouseOut={() => setTooltip(null)}
+                />
+              );
+            });
+          }}
+        </Geographies>
       </ComposableMap>
       <ReactTooltip id="world-map-tooltip">{tooltip}</ReactTooltip>
     </Container>

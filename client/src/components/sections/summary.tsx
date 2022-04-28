@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { useSummaries } from "../../api/analytics";
 import { Filters } from "../../api/types";
 import { BaseWindow } from "../shared/base-window";
-import { Card, GridItemX1 } from "../shared/page-layout";
+import { GridItemX1 } from "../shared/page-layout";
 
 export interface SummaryProps {
   domain: string;

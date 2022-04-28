@@ -39,9 +39,9 @@ const CountriesContent: FunctionComponent<CountriesProps> = ({
     <Container>
       {hasPreviousFilters && <div>{data.previousFilters.join(", ")}</div>}
       <Row>
-        <Panel variant="well">
+        <MapPanel variant="well">
           <WorldMap data={data?.items} />
-        </Panel>
+        </MapPanel>
         <TableWidgetContainer>
           <AnalyticsTable
             {...props}
@@ -82,4 +82,8 @@ const Row = styled.div`
   & > div {
     flex: 1;
   }
+`;
+
+const MapPanel = styled(Panel)`
+  background-color: #000080;
 `;
