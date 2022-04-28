@@ -1,5 +1,6 @@
 import React, { FunctionComponent } from "react";
 import { useReferrers } from "../../api/analytics";
+import { AnalyticsData } from "../../api/types";
 import { SuspenseWindow } from "../shared/suspense-window";
 import { TableWidget, TableWidgetWrapperProps } from "../shared/table-widget";
 
@@ -13,9 +14,19 @@ const ReferrersContent: FunctionComponent<ReferrersProps> = ({
 }) => {
   const { data } = useReferrers(domain, props.filters);
 
+  const renderIcon = (item: AnalyticsData) => {
+    return (
+      <img
+        src={`https://www.google.com/s2/favicons?domain=${item.value}&sz=16`}
+        alt={item.value}
+      />
+    );
+  };
+
   return (
     <TableWidget
       {...props}
+      renderIcon={renderIcon}
       data={data}
       filterPrimary="r"
       filterSecondary="rfp"
