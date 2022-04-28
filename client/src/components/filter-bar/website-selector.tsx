@@ -5,10 +5,12 @@ import { useWebsites } from "../../api/analytics";
 
 type WebsiteSelectorProps = {};
 
-export const WebsiteSelector: FunctionComponent<
-  WebsiteSelectorProps
-> = ({}) => {
-  const websites = useWebsites()?.data || [];
+export const WebsiteSelector: FunctionComponent<WebsiteSelectorProps> = () => {
+  const analyticsWebsites = useWebsites();
+  const websites = useMemo(
+    () => analyticsWebsites?.data || [],
+    [analyticsWebsites]
+  );
   const navigate = useNavigate();
   const params = useParams();
 

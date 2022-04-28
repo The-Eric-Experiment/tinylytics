@@ -7,7 +7,6 @@ import {
   TableHeadCell,
   TableRow,
 } from "react95";
-import styled from "styled-components";
 import { AnalyticsData, AnalyticsDataResponse, Filters } from "../../api/types";
 
 export interface AnalyticsTableProps {
@@ -87,16 +86,9 @@ const AnalyticsTable: FunctionComponent<AnalyticsTableProps> = ({
       label = formatName(label);
     }
 
-    if (!showAsLink(item)) {
-      return label;
-    }
-
-    return (
-      <a onClick={updateFilter(item)} type="button" href="">
-        {label}
-      </a>
-    );
+    return label;
   };
+
   return (
     <Table>
       <TableHead>
@@ -108,7 +100,16 @@ const AnalyticsTable: FunctionComponent<AnalyticsTableProps> = ({
       </TableHead>
       <TableBody>
         {data!.items.map((item) => (
-          <TableRow key={item.value + getLabel(item)}>
+          <TableRow
+            key={item.value + getLabel(item)}
+            onClick={
+              showAsLink(item)
+                ? updateFilter(item)
+                : () => {
+                    /** */
+                  }
+            }
+          >
             {renderIcon && (
               <TableDataCell style={{ textAlign: "center", width: "20px" }}>
                 <span role="img" aria-label={getLabel(item)}>

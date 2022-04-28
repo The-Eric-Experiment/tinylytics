@@ -1,4 +1,4 @@
-import React, { FunctionComponent, Suspense } from "react";
+import React, { FunctionComponent } from "react";
 import { useOSs } from "../../api/analytics";
 import { SuspenseWindow } from "../shared/suspense-window";
 import { TableWidget, TableWidgetWrapperProps } from "../shared/table-widget";

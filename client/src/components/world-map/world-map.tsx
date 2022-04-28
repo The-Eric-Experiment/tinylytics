@@ -1,11 +1,6 @@
 import { colord } from "colord";
 import React, { FunctionComponent, useState } from "react";
-import {
-  ComposableMap,
-  Geographies,
-  Geography,
-  ZoomableGroup,
-} from "react-simple-maps";
+import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import ReactTooltip from "react-tooltip";
 import styled from "styled-components";
 import { AnalyticsData } from "../../api/types";
@@ -34,7 +29,7 @@ export const WorldMap: FunctionComponent<WorldMapProps> = ({ data }) => {
     }
 
     return colord(colors.baseColor)
-      ["lighten"](0.4 * (1.0 - country.count / 100))
+      .lighten(0.4 * (1.0 - country.count / 100))
       .toHex();
   }
 
@@ -59,7 +54,7 @@ export const WorldMap: FunctionComponent<WorldMapProps> = ({ data }) => {
           scale: 120,
         }}
       >
-        <Geographies geography={`/worldmap.json`}>
+        <Geographies geography="/worldmap.json">
           {({ geographies }) => {
             return geographies.map((geo) => {
               return (

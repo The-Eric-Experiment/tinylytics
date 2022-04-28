@@ -5,10 +5,37 @@ import { styleReset } from "react95";
 // pick a theme of your choice
 // @ts-ignore
 import original from "react95/dist/themes/original";
+// @ts-ignore
+import ms_sans_serif from "react95/dist/fonts/ms_sans_serif.woff2";
+// @ts-ignore
+import ms_sans_serif_bold from "react95/dist/fonts/ms_sans_serif_bold.woff2";
 import styled, { createGlobalStyle, ThemeProvider } from "styled-components";
 import { AnalyticsPage } from "./pages/analytics-page";
 
 const GlobalStyles = createGlobalStyle`
+  @font-face {
+    font-family: 'ms_sans_serif';
+    src: url('${ms_sans_serif}') format('woff2');
+    font-weight: 400;
+    font-style: normal
+  }
+  @font-face {
+    font-family: 'ms_sans_serif';
+    src: url('${ms_sans_serif_bold}') format('woff2');
+    font-weight: bold;
+    font-style: normal
+  }
+
+  body {
+    background-color: #018281;
+    font-family: "ms_sans_serif";
+  }
+
+  * {
+    box-sizing: border-box;
+    font-family: "ms_sans_serif";
+  }
+  
   ${styleReset};
 `;
 

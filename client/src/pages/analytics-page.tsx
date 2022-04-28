@@ -32,6 +32,7 @@ export const AnalyticsPage: FunctionComponent<AnalyticsPageProps> = () => {
       navigate(`/${site ? site.domain : ""}`);
     }
   }, [params.domain]);
+
   const [searchParams, setSearchParams] = useSearchParams({
     p: Periods.P24H,
   });
@@ -39,7 +40,7 @@ export const AnalyticsPage: FunctionComponent<AnalyticsPageProps> = () => {
   const filters: Filters = useMemo(() => {
     return {
       p: Periods.P24H,
-      ...Object.fromEntries([...searchParams]),
+      ...Object.fromEntries(searchParams),
     } as Filters;
   }, [searchParams]);
 

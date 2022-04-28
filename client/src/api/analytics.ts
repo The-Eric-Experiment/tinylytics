@@ -68,7 +68,7 @@ export function usePages(
 }
 
 export function useWebsites(): SWRResponse<Website[]> {
-  return useSWR({ url: `/api/sites` }, fetcher, {
+  return useSWR({ url: "/api/sites" }, fetcher, {
     suspense: true,
   });
 }

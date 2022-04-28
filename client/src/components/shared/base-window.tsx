@@ -1,4 +1,4 @@
-import React, { FunctionComponent, Suspense } from "react";
+import React, { FunctionComponent, PropsWithChildren } from "react";
 import { Window, WindowContent, WindowHeader } from "react95";
 import styled from "styled-components";
 
@@ -6,10 +6,9 @@ interface BaseWindowProps {
   title: string;
 }
 
-export const BaseWindow: FunctionComponent<BaseWindowProps> = ({
-  title,
-  children,
-}) => {
+export const BaseWindow: FunctionComponent<
+  PropsWithChildren<BaseWindowProps>
+> = ({ title, children }) => {
   return (
     <WindowStyled className="window">
       <WindowHeader className="window-header">
