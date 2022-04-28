@@ -13,6 +13,7 @@ import styled, { createGlobalStyle, ThemeProvider } from "styled-components";
 import { AnalyticsPage } from "./pages/analytics-page";
 
 const GlobalStyles = createGlobalStyle`
+  ${styleReset};
   @font-face {
     font-family: 'ms_sans_serif';
     src: url('${ms_sans_serif}') format('woff2');
@@ -36,7 +37,6 @@ const GlobalStyles = createGlobalStyle`
     font-family: "ms_sans_serif";
   }
   
-  ${styleReset};
 `;
 
 function App() {
