@@ -1,15 +1,17 @@
 import React, { FunctionComponent, useMemo } from "react";
-import { Bar, Panel, Select, SelectOption, Toolbar } from "react95";
+import { Bar, Button, Panel, Select, SelectOption, Toolbar } from "react95";
 import { Filters, Periods } from "../../api/types";
 import {
   DEPENDANT_FILTERS,
+  FILTER_DISPLAY_TRANSFORM,
   FILTER_NAMES,
   PERIODS,
   SHOW_AS_SAME_FILTER,
   SHOW_PREVIOUS_FILTER_IF_EMPTY,
 } from "../../constants/filters";
-import { Pill } from "../shared/page-layout";
 import { WebsiteSelector } from "./website-selector";
+import trust1_restrict_1 from "../../assets/icons/trust1_restrict-1.png";
+import styled from "styled-components";
 
 type FilterBarProps = {
   filters: Filters;
@@ -77,6 +79,12 @@ export const FilterBar: FunctionComponent<FilterBarProps> = ({
       return "(unknown)";
     }
 
+    const transform = FILTER_DISPLAY_TRANSFORM[key];
+
+    if (transform) {
+      return transform(item);
+    }
+
     return item;
   };
 
@@ -103,15 +111,23 @@ export const FilterBar: FunctionComponent<FilterBarProps> = ({
         <Bar size={35} />
         {presentFilters.map((key) => {
           return (
-            <Pill key={key}>
-              {FILTER_NAMES[key]} is {getName(key)}
-              <button key={key} onClick={removeFilterClick(key)}>
-                x
-              </button>
-            </Pill>
+            <Button key={key} onClick={removeFilterClick(key)}>
+              {FILTER_NAMES[key]} is <Bold>{getName(key)}</Bold>
+              <ButtonIcon src={trust1_restrict_1} alt="remove" />
+            </Button>
           );
         })}
       </Toolbar>
     </Panel>
   );
 };
+
+const Bold = styled.span`
+  font-weight: 700;
+  display: inline;
+  margin-left: 6px;
+`;
+
+const ButtonIcon = styled.img`
+  margin-left: 4px;
+`;

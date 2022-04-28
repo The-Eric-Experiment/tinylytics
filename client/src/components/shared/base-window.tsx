@@ -11,13 +11,23 @@ export const BaseWindow: FunctionComponent<
 > = ({ title, children }) => {
   return (
     <WindowStyled className="window">
-      <WindowHeader className="window-header">
+      <StyledWindowHeader className="window-header">
         <span>{title}</span>
-      </WindowHeader>
+      </StyledWindowHeader>
       <WindowContentStyled>{children}</WindowContentStyled>
     </WindowStyled>
   );
 };
+
+const StyledWindowHeader = styled(WindowHeader)`
+  display: inline-flex;
+  flex-direction: column;
+  > span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+`;
 
 const WindowStyled = styled(Window)`
   height: 100%;

@@ -1,5 +1,6 @@
 import { SelectOption } from "react95";
 import { Filters, Periods } from "../api/types";
+import { COUNTRIES } from "./countries";
 
 export const FILTER_NAMES: Partial<Record<keyof Filters, string>> = {
   p: "Period",
@@ -40,3 +41,9 @@ export const DEPENDANT_FILTERS: Partial<
 export const SHOW_AS_SAME_FILTER: Array<Array<keyof Filters>> = [["r", "rfp"]];
 
 export const SHOW_PREVIOUS_FILTER_IF_EMPTY: Array<keyof Filters> = ["rfp"];
+
+export const FILTER_DISPLAY_TRANSFORM: Partial<
+  Record<keyof Filters, (val: string) => string>
+> = {
+  c: (val: string) => COUNTRIES[val] || val,
+};

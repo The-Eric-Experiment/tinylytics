@@ -22,11 +22,11 @@ export const PageHeader = styled.header`
 export const PageGrid = styled.section`
   display: grid;
   grid-template-rows: auto;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-gap: 16px;
 
   @media all and (min-width: ${LANDSCAPE}) {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 `;
 
@@ -55,17 +55,4 @@ export const GridItemX4 = styled.div`
   }
   display: flex;
   flex-direction: column;
-`;
-
-export const Card = styled.div`
-  display: flex;
-  flex-direction: column;
-  border: 1px solid black;
-  padding: 16px;
-  height: 100%;
-`;
-
-export const Pill = styled.div`
-  border-radius: 5px;
-  border: 1px solid black;
 `;

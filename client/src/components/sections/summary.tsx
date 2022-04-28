@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { useSummaries } from "../../api/analytics";
 import { Filters } from "../../api/types";
 import { BaseWindow } from "../shared/base-window";
-import { GridItemX1 } from "../shared/page-layout";
+import { GridItemX1, LANDSCAPE } from "../shared/page-layout";
 
 export interface SummaryProps {
   domain: string;
@@ -29,7 +29,7 @@ export function Summary({ domain, filters }: SummaryProps) {
 
   const getAvgSessionDuration = () => {
     return Duration.fromObject({ seconds: data?.avgSessionDuration }).toFormat(
-      "hh:mm:ss"
+      "m'm 'ss's'"
     );
   };
 
@@ -69,5 +69,8 @@ const CutoutStyled = styled(Cutout)`
   background: #ffffff;
   padding: 0 16px;
   text-align: right;
-  font-size: 42px;
+  font-size: 20px;
+  @media all and (min-width: ${LANDSCAPE}) {
+    font-size: 42px;
+  }
 `;
