@@ -101,16 +101,19 @@ func Initialize() {
 }
 
 func GetGeo(ipInput string) string {
+	if (ipInput == "") {
+		return "unknown"
+	}
 	db, err := geoip2.Open(helpers.GetDataPath(constants.GEOLITE_DB_FILE_NAME))
 	if err != nil {
-		log.Fatal(err)
+		return "unknown"
 	}
 	defer db.Close()
 	// If you are using strings that may be invalid, check that ip is not nil
 	ip := net.ParseIP(ipInput)
 	record, err := db.Country(ip)
 	if err != nil {
-		log.Fatal(err)
+		return "unknown"
 	}
 
 	return record.Country.IsoCode
