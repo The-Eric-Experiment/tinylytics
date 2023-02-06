@@ -86,7 +86,7 @@ func main() {
 
 	eventQueue.Listen(event.ProcessEvent)
 
-	router.Run()
+	router.Run("0.0.0.0:8099")
 }
 
 // PrintMemUsage outputs the current, total and OS memory being used. As well as the number
