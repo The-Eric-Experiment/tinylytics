@@ -23,8 +23,7 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: Setup yarn
-      uses: borales/actions-yarn@v4
+    - uses: borales/actions-yarn@v4
     - name: Install deps
       working-directory: ./client
       run: yarn
