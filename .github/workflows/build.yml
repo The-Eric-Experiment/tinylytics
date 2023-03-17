@@ -30,4 +30,4 @@ jobs:
       working-directory: ./client
       run: yarn build
     - name: Build container
-      run: docker-compose -f "../../../../docker-compose.yml" up -d --build
+      run:  cat ~/rebuild.sh | bash
