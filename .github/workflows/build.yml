@@ -24,6 +24,8 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - uses: borales/actions-yarn@v4
+      with:
+        cmd: install # ugh, who cares...
     - name: Install deps
       working-directory: ./client
       run: yarn
