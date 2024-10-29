@@ -36,6 +36,8 @@ func initializeDatabases() {
 			panic(err)
 		}
 
+		fmt.Println("Initializing database for domain: ", element.Domain)
+
 		initializeDb(filename)
 	}
 }
