@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"math"
 	"strings"
 	"time"
@@ -99,7 +100,7 @@ func setFilters(db *gorm.DB, c *gin.Context, usePageFilter bool) *gorm.DB {
 
 	if hasPage && usePageFilter {
 		db = db.Joins("left join user_events on user_sessions.id = user_events.session_id")
-		db = db.Where("user_events.page", page)
+		db = db.Where("user_events.page = ?", page)
 	}
 
 	return db
@@ -112,7 +113,7 @@ func selector(db *gorm.DB, fields ...string) *gorm.DB {
 }
 
 func (d *Database) Connect(file string) {
-	db, err := gorm.Open(sqlite.Open("file:"+file+"?cache=shared&mode=rwc&_journal_mode=WAL"), &gorm.Config{
+	db, err := gorm.Open(sqlite.Open("file:"+file+"?cache=shared&mode=rwc&_journal_mode=WAL&_timeout=30000"), &gorm.Config{
 		// Logger: logger.Default.LogMode(logger.Silent),
 		Logger: logger.Default.LogMode(logger.Info),
 	})
@@ -120,6 +121,12 @@ func (d *Database) Connect(file string) {
 	if err != nil {
 		panic("failed to connect database")
 	}
+
+	// Set connection pool settings for better performance
+	sqlDB, _ := db.DB()
+	sqlDB.SetMaxOpenConns(10)
+	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetConnMaxLifetime(time.Hour)
 
 	d.db = db
 }
@@ -133,10 +140,14 @@ func (d *Database) Close() {
 }
 
 func (d *Database) Initialize() {
-	// Migrate the schema
-	d.db.AutoMigrate(&UserSession{})
-	d.db.AutoMigrate(&UserEvent{})
+	// Migrate the schema - GORM will create indexes from struct tags for new tables
+	err := d.db.AutoMigrate(&UserSession{}, &UserEvent{})
+	if err != nil {
+		log.Printf("Migration failed: %v", err)
+		panic("failed to migrate database")
+	}
 
+	// Data cleanup
 	d.db.Exec("update user_sessions set referer = '(none)' where referer = ''")
 }
 
