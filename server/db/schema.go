@@ -8,7 +8,7 @@ import (
 
 type UserSession struct {
 	gorm.Model
-	ID              string `gorm:"primaryKey"`
+	ID              string `gorm:"primaryKey;index:idx_sessions_id_start,priority:1"`
 	UserIdent       string `gorm:"index:idx_user_ident_session_end,priority:1"`
 	Browser         string `gorm:"index:idx_sessions_start_browser,priority:2;index:idx_sessions_browser_major,priority:1"`
 	BrowserMajor    string `gorm:"index:idx_sessions_browser_major,priority:2;index:idx_sessions_browser_minor,priority:1"`
@@ -22,7 +22,7 @@ type UserSession struct {
 	UserAgent       string
 	Referer         string    `gorm:"index:idx_sessions_start_referer,priority:2;index:idx_sessions_referer_path,priority:1"`
 	RefererFullPath string    `gorm:"index:idx_sessions_referer_path,priority:2"`
-	SessionStart    time.Time `gorm:"index;index:idx_sessions_start_browser,priority:1;index:idx_sessions_start_country,priority:1;index:idx_sessions_start_os,priority:1;index:idx_sessions_start_referer,priority:1;index:idx_sessions_start_end,priority:1"`
+	SessionStart    time.Time `gorm:"index;index:idx_sessions_start_browser,priority:1;index:idx_sessions_start_country,priority:1;index:idx_sessions_start_os,priority:1;index:idx_sessions_start_referer,priority:1;index:idx_sessions_start_end,priority:1;index:idx_sessions_id_start,priority:2"`
 	SessionEnd      time.Time `gorm:"index:idx_user_ident_session_end,priority:2;index:idx_sessions_start_end,priority:2"`
 	ScreenWidth     int64
 	Events          int64
