@@ -2,6 +2,7 @@ package routes
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 	"strings"
 	"tinylytics/analytics"
@@ -12,16 +13,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func arrayFromRows(rows *sql.Rows, database *db.Database) []*analytics.AnalyticsItem {
+func arrayFromRows(rows *sql.Rows) []*analytics.AnalyticsItem {
+	if rows == nil {
+		log.Printf("ERROR: rows is nil in arrayFromRows")
+		return make([]*analytics.AnalyticsItem, 0)
+	}
 	defer rows.Close()
+
 	list := make([]*analytics.AnalyticsItem, 0)
+
 	for rows.Next() {
 		var output analytics.AnalyticsItem
 
-		database.Scan(rows, &output)
+		// All analytics queries return: value, count, drillable
+		err := rows.Scan(&output.Value, &output.Count, &output.Drillable)
+		if err != nil {
+			log.Printf("ERROR: Failed to scan row: %v", err)
+			continue
+		}
 
 		list = append(list, &output)
 	}
+
+	// Check for errors from iteration
+	if err := rows.Err(); err != nil {
+		log.Printf("ERROR: Error iterating rows: %v", err)
+	}
+
 	return list
 }
 
@@ -65,9 +83,10 @@ func GetBrowsers(c *gin.Context) {
 
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Couldn't get browsers")
+		return
 	}
 
-	items := arrayFromRows(rows, database)
+	items := arrayFromRows(rows)
 
 	previousFilters := make([]string, 0)
 
@@ -97,9 +116,10 @@ func GetOSs(c *gin.Context) {
 
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Couldn't get OSs")
+		return
 	}
 
-	items := arrayFromRows(rows, database)
+	items := arrayFromRows(rows)
 
 	previousFilters := make([]string, 0)
 
@@ -129,9 +149,10 @@ func GetCountries(c *gin.Context) {
 
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Couldn't get Countries")
+		return
 	}
 
-	items := arrayFromRows(rows, database)
+	items := arrayFromRows(rows)
 
 	country, hasCountry := c.GetQuery("c")
 
@@ -155,9 +176,10 @@ func GetReferrers(c *gin.Context) {
 
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Couldn't get Referrers")
+		return
 	}
 
-	items := arrayFromRows(rows, database)
+	items := arrayFromRows(rows)
 
 	referrer, hasReferrer := c.GetQuery("r")
 
@@ -181,9 +203,10 @@ func GetPages(c *gin.Context) {
 
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Couldn't get Pages")
+		return
 	}
 
-	items := arrayFromRows(rows, database)
+	items := arrayFromRows(rows)
 
 	path, hasPath := c.GetQuery("pg")
 

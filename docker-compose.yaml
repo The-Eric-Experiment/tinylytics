@@ -15,3 +15,10 @@ services:
     env_file:
       - database.env
     restart: always
+    # Ensure CGO is enabled (also set in Dockerfile)
+    environment:
+      - CGO_ENABLED=1
+
+networks:
+  ericexperiment:
+    external: true
