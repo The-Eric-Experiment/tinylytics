@@ -1,36 +1,52 @@
 # syntax=docker/dockerfile:1
-FROM golang:1.25.5-alpine
 
-# Install build dependencies for CGO and DuckDB
-RUN apk add --no-cache \
+# Build stage - use Debian-based Go image for glibc compatibility with DuckDB
+FROM golang:1.25.5-bookworm AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
     git \
-    build-base \
+    build-essential \
     gcc \
     g++ \
-    musl-dev
+    && rm -rf /var/lib/apt/lists/*
 
-# Set CGO environment variables for DuckDB
+# Enable CGO for DuckDB (REQUIRED)
 ENV CGO_ENABLED=1
 ENV GOOS=linux
 
 WORKDIR /app
 
-# Copy go mod files
+# Copy go dependencies
 COPY ./server/go.mod .
 COPY ./server/go.sum .
 
-# Download dependencies
+# Download Go modules
 RUN go mod download
 
-# Copy client build
+# Copy frontend build
 COPY ./client/build ./client
 
-# Copy server source
+# Copy backend source
 COPY ./server .
 
-# Build with CGO enabled (required for DuckDB)
+# Build the application
 RUN go build -o tinylytics .
+
+# Runtime stage - minimal Debian image (glibc compatible)
+FROM debian:bookworm-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy binary and client from builder
+COPY --from=builder /app/tinylytics .
+COPY --from=builder /app/client ./client
 
 EXPOSE 8080
 
-CMD [ "./tinylytics" ]
+CMD ["./tinylytics"]
