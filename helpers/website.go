@@ -26,7 +26,7 @@ func GetDatabaseFileName(domain string) (string, error) {
 	nm, _ := uuid.FromBytes([]byte("0d032761-6264-49d4-b099-74219d6d564d"))
 	dbHash := uuid.NewSHA1(nm, []byte(site.Domain)).String()
 
-	filename := dbHash + ".duckdb"
+	filename := dbHash + ".db"
 	filePath := path.Join(conf.Config.DataFolder, filename)
 	return filePath, nil
 }

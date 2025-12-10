@@ -66,11 +66,8 @@ func ProcessEvent(item *ClientInfo) {
 	if session == nil {
 		referrerDomain, referrerFullPath := helpers.FilterReferrer(item.Referer, item.Domain)
 
-		now := time.Now().UTC()
 		session = database.StartUserSession(&db.UserSession{
 			ID:              GetSessionId(item, item.Time),
-			CreatedAt:       now,
-			UpdatedAt:       now,
 			UserIdent:       userIdent,
 			Browser:         result.Browser,
 			BrowserMajor:    result.BrowserMajor,
@@ -93,7 +90,6 @@ func ProcessEvent(item *ClientInfo) {
 
 	session.SessionEnd = item.Time
 	session.Events++
-	session.UpdatedAt = time.Now().UTC()
 
 	database.UpdateUserSession(session)
 
@@ -108,11 +104,8 @@ func ProcessEvent(item *ClientInfo) {
 		}, "/")
 	}
 
-	now := time.Now().UTC()
 	database.SaveEvent(&db.UserEvent{
 		ID:        uuid.NewString(),
-		CreatedAt: now,
-		UpdatedAt: now,
 		Page:      page,
 		Name:      item.Name,
 		EventTime: item.Time,
