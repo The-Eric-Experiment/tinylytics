@@ -25,10 +25,8 @@ jobs:
       - name: Enable Yarn
         run: corepack enable
       - name: Install JS dependencies
-        working-directory: ./server
         run: yarn install
       - name: Build JS bundle
-        working-directory: ./server
         run: yarn build
       - name: Build container
         run: cat ~/rebuild.sh | bash

@@ -14,10 +14,10 @@ RUN apt-get update && apt-get install -y \
 ENV CGO_ENABLED=1
 ENV GOOS=linux
 
-WORKDIR /build/server
+WORKDIR /build
 
 # Copy backend source
-COPY ./server .
+COPY . .
 
 # Download Go modules and build
 RUN go mod download && go build -o tinylytics .
@@ -33,10 +33,10 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy from the new path
-COPY --from=builder /build/server/tinylytics .
-COPY --from=builder /build/server/static ./static
-COPY --from=builder /build/server/templates ./templates
+COPY --from=builder /build/tinylytics .
+COPY --from=builder /build/static ./static
+COPY --from=builder /build/templates ./templates
 
-EXPOSE 8080
+EXPOSE 8099
 
 CMD ["./tinylytics"]

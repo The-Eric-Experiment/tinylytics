@@ -22,20 +22,14 @@ A lightweight analytics platform built with Go and HTMX, featuring a retro Windo
 ### Installation
 
 1. Clone the repository
-2. Navigate to the server directory:
-
-   ```bash
-   cd server
-   ```
-
-3. Copy the example config and edit it:
+2. Copy the example config and edit it:
 
    ```bash
    cp config.yaml.example config.yaml
    # Edit config.yaml with your settings
    ```
 
-4. Run the server:
+3. Run the server:
    ```bash
    go run main.go
    ```
@@ -48,12 +42,12 @@ Build and run with Docker:
 
 ```bash
 docker build -t tinylytics .
-docker run -p 8099:8099 -v $(pwd)/server/data:/app/data tinylytics
+docker run -p 8099:8099 -v $(pwd)/data:/app/data tinylytics
 ```
 
 ## Configuration
 
-Edit `server/config.yaml` to configure your websites and data folder:
+Edit `config.yaml` to configure your websites and data folder:
 
 ```yaml
 user:
