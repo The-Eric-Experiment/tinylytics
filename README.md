@@ -8,7 +8,7 @@ A lightweight analytics platform built with Go and HTMX, featuring a retro Windo
 - Session and page view tracking
 - Browser, OS, and country detection
 - Referrer and page tracking
-- SQLite database storage
+- DuckDB database storage
 - Windows 98-style UI using [98.css](https://github.com/jdan/98.css)
 - HTMX for dynamic updates without JavaScript frameworks
 
@@ -17,7 +17,6 @@ A lightweight analytics platform built with Go and HTMX, featuring a retro Windo
 ### Prerequisites
 
 - Go 1.24 or higher
-- SQLite
 
 ### Installation
 
@@ -86,7 +85,7 @@ Add the tracking script to your website:
 The application uses:
 
 - **Backend**: Go with Gin framework
-- **Database**: SQLite with GORM
+- **Database**: DuckDB with raw database/sql
 - **Frontend**: HTML templates with HTMX
 - **Styling**: 98.css for Windows 98 aesthetic + minimal custom CSS
 

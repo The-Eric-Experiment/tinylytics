@@ -12,14 +12,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/marcboeker/go-duckdb" // DuckDB driver for database/sql
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 type Database struct {
-	sqlite *gorm.DB // SQLite with GORM (stable driver)
-	duckdb *sql.DB  // DuckDB with raw database/sql (no GORM)
+	duckdb *sql.DB // DuckDB with raw database/sql
 }
 
 func getFilterValue(input string) string {
@@ -126,25 +122,10 @@ func buildFilters(c *gin.Context, usePageFilter bool) ([]string, []interface{}) 
 }
 
 func (d *Database) Connect(file string) {
-	// Generate DuckDB filename from SQLite filename
-	duckdbFile := strings.Replace(file, ".db", ".duckdb", 1)
+	// Generate DuckDB filename from database filename
+	duckdbFile := file
 
-	// Connect to SQLite (existing database) with GORM
-	sqliteDB, err := gorm.Open(sqlite.Open("file:"+file+"?cache=shared&mode=rwc&_journal_mode=WAL&_timeout=30000"), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
-	})
-
-	if err != nil {
-		panic("failed to connect to SQLite database: " + err.Error())
-	}
-
-	// Set SQLite connection pool settings
-	sqliteSQLDB, _ := sqliteDB.DB()
-	sqliteSQLDB.SetMaxOpenConns(10)
-	sqliteSQLDB.SetMaxIdleConns(5)
-	sqliteSQLDB.SetConnMaxLifetime(time.Hour)
-
-	// Connect to DuckDB using raw database/sql (no GORM)
+	// Connect to DuckDB using raw database/sql
 	duckdbDB, err := sql.Open("duckdb", duckdbFile)
 	if err != nil {
 		panic("failed to connect to DuckDB database: " + err.Error())
@@ -155,30 +136,18 @@ func (d *Database) Connect(file string) {
 	duckdbDB.SetMaxIdleConns(5)
 	duckdbDB.SetConnMaxLifetime(time.Hour)
 
-	d.sqlite = sqliteDB
 	d.duckdb = duckdbDB
 }
 
 func (d *Database) Close() {
-	if d.sqlite != nil {
-		sqliteDB, _ := d.sqlite.DB()
-		sqliteDB.Close()
-	}
 	if d.duckdb != nil {
 		d.duckdb.Close()
 	}
 }
 
 func (d *Database) Initialize() {
-	// Migrate SQLite schema (row-based with full indexing)
-	err := d.sqlite.AutoMigrate(&UserSession{}, &UserEvent{})
-	if err != nil {
-		log.Printf("SQLite migration failed: %v", err)
-		panic("failed to migrate SQLite database")
-	}
-
-	// Migrate DuckDB schema using raw SQL
-	_, err = d.duckdb.Exec(`
+	// Create DuckDB schema using raw SQL
+	_, err := d.duckdb.Exec(`
 		CREATE TABLE IF NOT EXISTS user_sessions (
 			id VARCHAR PRIMARY KEY,
 			created_at TIMESTAMP,
@@ -223,214 +192,8 @@ func (d *Database) Initialize() {
 		panic("failed to create DuckDB user_events table")
 	}
 
-	// Migrate data from SQLite to DuckDB (one-time operation)
-	// d.migrateDataToDuckDB()
-
-	// Data cleanup on both databases
-	d.sqlite.Exec("update user_sessions set referer = '(none)' where referer = ''")
+	// Data cleanup
 	d.duckdb.Exec("update user_sessions set referer = '(none)' where referer = ''")
-}
-
-func (d *Database) migrateDataToDuckDB() {
-	// Get counts from both databases
-	var sqliteSessionCount, sqliteEventCount int64
-	var duckdbSessionCount, duckdbEventCount int64
-
-	d.sqlite.Model(&UserSession{}).Count(&sqliteSessionCount)
-	d.sqlite.Model(&UserEvent{}).Count(&sqliteEventCount)
-	d.duckdb.QueryRow("SELECT COUNT(*) FROM user_sessions").Scan(&duckdbSessionCount)
-	d.duckdb.QueryRow("SELECT COUNT(*) FROM user_events").Scan(&duckdbEventCount)
-
-	// Check if migration is already complete
-	if duckdbSessionCount == sqliteSessionCount && duckdbEventCount == sqliteEventCount {
-		log.Printf("Migration already complete: %d sessions, %d events", duckdbSessionCount, duckdbEventCount)
-		return
-	}
-
-	// Check if there's a partial migration - continue from where we left off
-	if duckdbSessionCount > 0 {
-		log.Printf("Partial migration detected - resuming from session %d/%d", duckdbSessionCount, sqliteSessionCount)
-	}
-
-	// Check if SQLite has any data to migrate
-	if sqliteSessionCount == 0 {
-		log.Println("No data in SQLite to migrate")
-		return
-	}
-
-	log.Printf("Starting migration of %d sessions and %d events from SQLite to DuckDB...", sqliteSessionCount, sqliteEventCount)
-
-	// Get list of already-migrated session IDs to skip them
-	var existingSessionIDs []string
-	if duckdbSessionCount > 0 {
-		log.Printf("Loading existing session IDs from DuckDB...")
-		rows, err := d.duckdb.Query("SELECT id FROM user_sessions")
-		if err != nil {
-			log.Printf("ERROR: Failed to query existing IDs: %v", err)
-		} else {
-			defer rows.Close()
-			for rows.Next() {
-				var id string
-				rows.Scan(&id)
-				existingSessionIDs = append(existingSessionIDs, id)
-			}
-			log.Printf("Loaded %d existing session IDs (approx %d MB in memory)",
-				len(existingSessionIDs),
-				len(existingSessionIDs)*36/1024/1024)
-		}
-	}
-	existingSessionMap := make(map[string]bool, len(existingSessionIDs))
-	for _, id := range existingSessionIDs {
-		existingSessionMap[id] = true
-	}
-
-	// Migrate sessions in batches
-	batchSize := 1000
-	offset := 0
-	totalMigrated := int(duckdbSessionCount)
-	failedSessions := 0
-	skipped := 0
-
-	insertSQL := `
-		INSERT INTO user_sessions (
-			id, created_at, updated_at, user_ident, browser, browser_major, browser_minor,
-			browser_patch, os, os_major, os_minor, os_patch, country, user_agent,
-			referer, referer_full_path, session_start, session_end, screen_width, events
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`
-
-	for {
-		var sessions []UserSession
-		result := d.sqlite.Offset(offset).Limit(batchSize).Find(&sessions)
-
-		if result.Error != nil {
-			log.Printf("Error reading sessions from SQLite: %v", result.Error)
-			panic("Failed to migrate sessions")
-		}
-
-		if len(sessions) == 0 {
-			break
-		}
-
-		for _, s := range sessions {
-			// Skip if already exists
-			if existingSessionMap[s.ID] {
-				skipped++
-				continue
-			}
-
-			_, err := d.duckdb.Exec(insertSQL,
-				s.ID, s.CreatedAt, s.UpdatedAt, s.UserIdent, s.Browser, s.BrowserMajor, s.BrowserMinor,
-				s.BrowserPatch, s.OS, s.OSMajor, s.OSMinor, s.OSPatch, s.Country, s.UserAgent,
-				s.Referer, s.RefererFullPath, s.SessionStart, s.SessionEnd, s.ScreenWidth, s.Events,
-			)
-
-			if err != nil {
-				log.Printf("WARNING: Failed to insert session %s: %v - SKIPPING", s.ID, err)
-				failedSessions++
-				continue
-			}
-			totalMigrated++
-		}
-
-		if totalMigrated%10000 == 0 {
-			log.Printf("Migrated %d/%d sessions (skipped: %d, failed: %d)", totalMigrated, sqliteSessionCount, skipped, failedSessions)
-		}
-		offset += batchSize
-	}
-
-	log.Printf("Migrated %d/%d sessions (skipped: %d, failed: %d)", totalMigrated, sqliteSessionCount, skipped, failedSessions)
-
-	// Get list of already-migrated event IDs to skip them
-	var existingEventIDs []string
-	if duckdbEventCount > 0 {
-		log.Printf("Loading existing event IDs from DuckDB...")
-		rows, err := d.duckdb.Query("SELECT id FROM user_events")
-		if err != nil {
-			log.Printf("ERROR: Failed to query existing IDs: %v", err)
-		} else {
-			defer rows.Close()
-			for rows.Next() {
-				var id string
-				rows.Scan(&id)
-				existingEventIDs = append(existingEventIDs, id)
-			}
-			log.Printf("Loaded %d existing event IDs", len(existingEventIDs))
-		}
-	}
-	existingEventMap := make(map[string]bool, len(existingEventIDs))
-	for _, id := range existingEventIDs {
-		existingEventMap[id] = true
-	}
-
-	// Migrate events in batches
-	if sqliteEventCount > 0 {
-		log.Printf("Starting event migration...")
-		offset = 0
-		totalMigrated = int(duckdbEventCount)
-		failedEvents := 0
-		skipped = 0
-
-		insertSQL := `
-			INSERT INTO user_events (
-				id, created_at, updated_at, name, page, event_time, session_id
-			) VALUES (?, ?, ?, ?, ?, ?, ?)
-		`
-
-		for {
-			var events []UserEvent
-			result := d.sqlite.Offset(offset).Limit(batchSize).Find(&events)
-
-			if result.Error != nil {
-				log.Printf("Error reading events from SQLite: %v", result.Error)
-				panic("Failed to migrate events")
-			}
-
-			if len(events) == 0 {
-				break
-			}
-
-			for _, e := range events {
-				// Skip if already exists
-				if existingEventMap[e.ID] {
-					skipped++
-					continue
-				}
-
-				_, err := d.duckdb.Exec(insertSQL,
-					e.ID, e.CreatedAt, e.UpdatedAt, e.Name, e.Page, e.EventTime, e.SessionID,
-				)
-
-				if err != nil {
-					log.Printf("WARNING: Failed to insert event %s: %v - SKIPPING", e.ID, err)
-					failedEvents++
-					continue
-				}
-				totalMigrated++
-			}
-
-			if totalMigrated%10000 == 0 {
-				log.Printf("Migrated %d/%d events (skipped: %d, failed: %d)", totalMigrated, sqliteEventCount, skipped, failedEvents)
-			}
-			offset += batchSize
-		}
-
-		log.Printf("Migrated %d/%d events (skipped: %d, failed: %d)", totalMigrated, sqliteEventCount, skipped, failedEvents)
-	}
-
-	// Verify migration completed successfully
-	d.duckdb.QueryRow("SELECT COUNT(*) FROM user_sessions").Scan(&duckdbSessionCount)
-	d.duckdb.QueryRow("SELECT COUNT(*) FROM user_events").Scan(&duckdbEventCount)
-
-	log.Println("Migration verification:")
-	log.Printf("  Sessions: SQLite %d → DuckDB %d", sqliteSessionCount, duckdbSessionCount)
-	log.Printf("  Events: SQLite %d → DuckDB %d", sqliteEventCount, duckdbEventCount)
-
-	if duckdbSessionCount == sqliteSessionCount && duckdbEventCount == sqliteEventCount {
-		log.Println("✓ Migration completed successfully!")
-	} else {
-		log.Printf("⚠ Migration incomplete - some records may have failed")
-	}
 }
 
 func (d *Database) GetUserSession(userIdent string) *UserSession {
@@ -448,7 +211,7 @@ func (d *Database) GetUserSession(userIdent string) *UserSession {
 		LIMIT 1
 	`
 
-	var session UserSessionDuckDB
+	var session UserSession
 	err := d.duckdb.QueryRow(query, userIdent, sessionEnd).Scan(
 		&session.ID, &session.CreatedAt, &session.UpdatedAt, &session.UserIdent,
 		&session.Browser, &session.BrowserMajor, &session.BrowserMinor, &session.BrowserPatch,
@@ -465,41 +228,10 @@ func (d *Database) GetUserSession(userIdent string) *UserSession {
 		return nil
 	}
 
-	// Convert to SQLite schema for return (maintains compatibility)
-	return &UserSession{
-		Model: gorm.Model{
-			ID:        0,
-			CreatedAt: session.CreatedAt,
-			UpdatedAt: session.UpdatedAt,
-		},
-		ID:              session.ID,
-		UserIdent:       session.UserIdent,
-		Browser:         session.Browser,
-		BrowserMajor:    session.BrowserMajor,
-		BrowserMinor:    session.BrowserMinor,
-		BrowserPatch:    session.BrowserPatch,
-		OS:              session.OS,
-		OSMajor:         session.OSMajor,
-		OSMinor:         session.OSMinor,
-		OSPatch:         session.OSPatch,
-		Country:         session.Country,
-		UserAgent:       session.UserAgent,
-		Referer:         session.Referer,
-		RefererFullPath: session.RefererFullPath,
-		SessionStart:    session.SessionStart,
-		SessionEnd:      session.SessionEnd,
-		ScreenWidth:     session.ScreenWidth,
-		Events:          session.Events,
-	}
+	return &session
 }
 
 func (d *Database) StartUserSession(item *UserSession) *UserSession {
-	// Dual write: SQLite first (more reliable for writes), then DuckDB
-	if err := d.sqlite.Create(&item).Error; err != nil {
-		log.Printf("ERROR: Failed to write session to SQLite: %v", err)
-		panic(err)
-	}
-
 	// Insert into DuckDB using raw SQL
 	insertSQL := `
 		INSERT INTO user_sessions (
@@ -516,20 +248,14 @@ func (d *Database) StartUserSession(item *UserSession) *UserSession {
 	)
 
 	if err != nil {
-		log.Printf("WARNING: Session %s saved to SQLite but failed to write to DuckDB: %v", item.ID, err)
-		// Don't panic - data is in SQLite, can be synced later
+		log.Printf("ERROR: Failed to write session to DuckDB: %v", err)
+		panic(err)
 	}
 
 	return item
 }
 
 func (d *Database) UpdateUserSession(item *UserSession) {
-	// Dual update: SQLite first, then DuckDB
-	if err := d.sqlite.Save(&item).Error; err != nil {
-		log.Printf("ERROR: Failed to update session in SQLite: %v", err)
-		panic(err)
-	}
-
 	// Update in DuckDB using raw SQL
 	updateSQL := `
 		UPDATE user_sessions SET
@@ -549,20 +275,12 @@ func (d *Database) UpdateUserSession(item *UserSession) {
 	)
 
 	if err != nil {
-		log.Printf("WARNING: Session %s updated in SQLite but failed to update in DuckDB: %v", item.ID, err)
-		// Don't panic - data is in SQLite
+		log.Printf("ERROR: Failed to update session in DuckDB: %v", err)
+		panic(err)
 	}
 }
 
 func (d *Database) SaveEvent(item *UserEvent, sessionId string) *UserEvent {
-	item.Session = UserSession{ID: sessionId}
-
-	// Dual write: SQLite first, then DuckDB
-	if err := d.sqlite.Create(&item).Error; err != nil {
-		log.Printf("ERROR: Failed to write event to SQLite: %v", err)
-		panic(err)
-	}
-
 	// Insert into DuckDB using raw SQL
 	insertSQL := `
 		INSERT INTO user_events (
@@ -575,8 +293,8 @@ func (d *Database) SaveEvent(item *UserEvent, sessionId string) *UserEvent {
 	)
 
 	if err != nil {
-		log.Printf("WARNING: Event %s saved to SQLite but failed to write to DuckDB: %v", item.ID, err)
-		// Don't panic - data is in SQLite
+		log.Printf("ERROR: Failed to write event to DuckDB: %v", err)
+		panic(err)
 	}
 
 	return item
