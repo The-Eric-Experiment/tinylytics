@@ -131,6 +131,12 @@ func (d *Database) Connect(file string) {
 		panic("failed to connect to DuckDB database: " + err.Error())
 	}
 
+	// Verify the connection works
+	if err := duckdbDB.Ping(); err != nil {
+		duckdbDB.Close()
+		panic("failed to ping DuckDB database: " + err.Error())
+	}
+
 	// Set DuckDB connection pool settings
 	duckdbDB.SetMaxOpenConns(10)
 	duckdbDB.SetMaxIdleConns(5)
