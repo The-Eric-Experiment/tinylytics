@@ -1,0 +1,410 @@
+body {
+  --landscape: 576px;
+  --tablet: 768px;
+  --desktop: 992px;
+
+  background-color: #018281;
+  padding: 0;
+  margin: 0;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Page Layout - matches React page-layout.tsx */
+.page-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 1600px;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  width: 100%;
+}
+
+#filter-bar {
+  width: 100%;
+}
+
+/* Grid Layout */
+.page-grid {
+  padding: 8px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  grid-gap: 8px;
+  width: 100%;
+}
+
+@media all and (min-width: 768px) {
+  .page-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media all and (min-width: 992px) {
+  .page-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Summary container should not affect grid layout */
+#summary-container {
+  display: contents;
+}
+
+.grid-item-x1,
+.grid-item-x2,
+.grid-item-x4 {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.grid-item-x1 > *,
+.grid-item-x2 > *,
+.grid-item-x4 > * {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+app-window {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-item-x1 {
+  grid-column: span 1;
+}
+
+.grid-item-x2 {
+  grid-column: span 1;
+}
+
+@media all and (min-width: 768px) {
+  .grid-item-x2 {
+    grid-column: span 2;
+  }
+}
+
+.grid-item-x4 {
+  grid-column: span 1;
+}
+
+@media all and (min-width: 768px) {
+  .grid-item-x4 {
+    grid-column: span 2;
+  }
+}
+
+@media all and (min-width: 992px) {
+  .grid-item-x4 {
+    grid-column: span 4;
+  }
+}
+
+/* Summary Cards - matches React CutoutStyled */
+.summary-card {
+  background: #ffffff;
+  padding: 16px;
+  text-align: right;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+@media all and (min-width: 576px) {
+  .summary-card {
+    font-size: 42px;
+  }
+}
+
+/* Window spacing */
+.window {
+  margin-bottom: 0;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+/* Table enhancements */
+.window table,
+app-window table,
+app-window app-window .window-body table,
+app-window .sunken-panel table {
+  width: 100%;
+  margin: 0;
+  table-layout: auto;
+}
+
+/* Columns with inline width styles - respect the width */
+app-window .sunken-panel table td[style*="width"],
+app-window .sunken-panel table th[style*="width"] {
+  overflow: visible;
+  text-overflow: clip;
+  /* Inline style width will be respected */
+}
+
+/* Columns without inline width styles - extend and ellipsis */
+app-window .sunken-panel table td:not([style*="width"]),
+app-window .sunken-panel table th:not([style*="width"]) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 0;
+  width: auto;
+}
+
+app-window tbody tr:hover {
+  background: #e0e0e0;
+  cursor: pointer;
+}
+
+/* Icon styles */
+.icon {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Previous filters display */
+.previous-filters {
+  padding: 4px 8px;
+  background: #e0e0e0;
+  font-size: 11px;
+  margin-bottom: 2px;
+  border: 1px solid #808080;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Loading and error states */
+.loading,
+.error {
+  padding: 20px;
+  text-align: center;
+}
+
+.error {
+  color: #ff0000;
+}
+
+/* htmx indicator - hidden by default, shown during requests */
+.htmx-indicator {
+  opacity: 0;
+  transition: opacity 200ms ease-in;
+}
+
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+  opacity: 1;
+}
+
+/* Toolbar spacing */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 4px;
+}
+
+.toolbar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolbar button img {
+  width: 12px;
+  height: 12px;
+}
+
+.toolbar select {
+  min-width: 160px;
+}
+
+.bold {
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+/* Countries section layout - matches React countries.tsx */
+.countries-row {
+  gap: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+@media all and (min-width: 768px) {
+  .countries-row {
+    flex-direction: row;
+    align-items: stretch;
+  }
+}
+
+.countries-row > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.countries-row .sunken-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Map container inside sunken-panel */
+.countries-row .sunken-panel:first-child {
+  background-color: #000080;
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: none;
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.map-container world-map {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.map-container world-map svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Table panel */
+.table-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-panel table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* Pages table URL truncation */
+.pages-table td:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 0;
+}
+
+.window-padding {
+  padding: 2px;
+}
+
+app-window .htmx-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+app-window .htmx-container > .sunken-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+#filter-bar .toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+
+#filter-bar .toolbar .selects-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#filter-bar .active-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+
+#filter-bar .active-filters > button {
+  max-width: none;
+  white-space: nowrap;
+  overflow: hidden;
+  gap: 4px;
+  align-items: center;
+}
+
+@media all and (min-width: 576px) {
+  #filter-bar .toolbar .selects-group {
+    flex-direction: row;
+  }
+
+  #filter-bar .active-filters {
+    flex-direction: row;
+  }
+
+  #filter-bar .active-filters > button {
+    max-width: 300px;
+    flex: 0 1 auto;
+    min-width: 0;
+    display: inline-flex;
+  }
+}
+
+@media all and (min-width: 992px) {
+  #filter-bar .toolbar {
+    flex-wrap: nowrap;
+    flex-direction: row;
+  }
+}
+
+.active-filters > button .bold {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.active-filters > button img {
+  flex-shrink: 0;
+  margin-left: auto;
+}

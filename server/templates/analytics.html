@@ -1,0 +1,86 @@
+{{define "content"}}
+<div class="page-layout">
+  <div class="page-header">{{template "filter-bar.html" .}}</div>
+  <div class="page-grid">
+    <!-- Summary cards load here -->
+    <div
+      id="summary-container"
+      hx-get="/summary-cards?site={{.Domain}}&p={{.CurrentPeriod}}{{.QueryString}}"
+      hx-trigger="load"
+      hx-swap="innerHTML"
+    >
+      {{template "summary.html" .}}
+    </div>
+    <div class="grid-item-x2">
+      <app-window title="Browsers">
+        <div
+          hx-get="/browsers-table?site={{.Domain}}&p={{.CurrentPeriod}}{{.QueryString}}"
+          hx-trigger="load"
+          hx-target="this"
+          hx-swap="innerHTML"
+          hx-indicator="#browsers-loader"
+          class="htmx-container"
+        >
+          {{template "table-loader.html" (dict "LoaderID" "browsers-loader")}}
+        </div>
+      </app-window>
+    </div>
+    <div class="grid-item-x2">
+      <app-window title="OS">
+        <div
+          hx-get="/os-table?site={{.Domain}}&p={{.CurrentPeriod}}{{.QueryString}}"
+          hx-trigger="load"
+          hx-target="this"
+          hx-swap="innerHTML"
+          hx-indicator="#os-loader"
+          class="htmx-container"
+        >
+          {{template "table-loader.html" (dict "LoaderID" "os-loader")}}
+        </div>
+      </app-window>
+    </div>
+    <div class="grid-item-x2">
+      <app-window title="Pages">
+        <div
+          hx-get="/pages-table?site={{.Domain}}&p={{.CurrentPeriod}}{{.QueryString}}"
+          hx-trigger="load"
+          hx-target="this"
+          hx-swap="innerHTML"
+          hx-indicator="#pages-loader"
+          class="htmx-container"
+        >
+          {{template "table-loader.html" (dict "LoaderID" "pages-loader")}}
+        </div>
+      </app-window>
+    </div>
+    <div class="grid-item-x2">
+      <app-window title="Referrers">
+        <div
+          hx-get="/referrers-table?site={{.Domain}}&p={{.CurrentPeriod}}{{.QueryString}}"
+          hx-trigger="load"
+          hx-target="this"
+          hx-swap="innerHTML"
+          hx-indicator="#referrers-loader"
+          class="htmx-container"
+        >
+          {{template "table-loader.html" (dict "LoaderID" "referrers-loader")}}
+        </div>
+      </app-window>
+    </div>
+    <div class="grid-item-x4">
+      <app-window title="Countries">
+        <div
+          hx-get="/countries-table?site={{.Domain}}&p={{.CurrentPeriod}}{{.QueryString}}"
+          hx-trigger="load"
+          hx-target="this"
+          hx-swap="innerHTML"
+          hx-indicator="#countries-loader"
+          class="htmx-container"
+        >
+          {{template "table-loader.html" (dict "LoaderID" "countries-loader")}}
+        </div>
+      </app-window>
+    </div>
+  </div>
+</div>
+{{end}} {{template "base.html" .}}

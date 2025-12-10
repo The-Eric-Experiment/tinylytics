@@ -1,0 +1,22 @@
+{{define "base.html"}}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{if .Title}}{{.Title}} - {{end}}Tinylytics</title>
+    <link rel="stylesheet" href="https://unpkg.com/98.css@0.1.21/dist/98.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/flag-icons@6.6.6/css/flag-icons.min.css"
+    />
+    <link rel="stylesheet" href="/static/css/custom.css" />
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="/static/js/index.js"></script>
+  </head>
+  <body>
+    <div class="app-container">{{block "content" .}}{{end}}</div>
+  </body>
+</html>
+{{end}}

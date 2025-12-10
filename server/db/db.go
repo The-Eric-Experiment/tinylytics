@@ -224,7 +224,7 @@ func (d *Database) Initialize() {
 	}
 
 	// Migrate data from SQLite to DuckDB (one-time operation)
-	d.migrateDataToDuckDB()
+	// d.migrateDataToDuckDB()
 
 	// Data cleanup on both databases
 	d.sqlite.Exec("update user_sessions set referer = '(none)' where referer = ''")
@@ -828,7 +828,6 @@ func (d *Database) GetCountries(c *gin.Context) (*sql.Rows, error) {
 		WHERE %s
 		GROUP BY user_sessions.country
 		ORDER BY count DESC
-		LIMIT 20
 	`, strings.Join(conditions, " AND "))
 
 	return d.duckdb.Query(query, args...)

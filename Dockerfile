@@ -1,6 +1,5 @@
 # syntax=docker/dockerfile:1
-
-# Build stage - use Debian-based Go image for glibc compatibility with DuckDB
+# Build stage
 FROM golang:1.25.5-bookworm AS builder
 
 # Install build dependencies
@@ -15,25 +14,15 @@ RUN apt-get update && apt-get install -y \
 ENV CGO_ENABLED=1
 ENV GOOS=linux
 
-WORKDIR /app
-
-# Copy go dependencies
-COPY ./server/go.mod .
-COPY ./server/go.sum .
-
-# Download Go modules
-RUN go mod download
-
-# Copy frontend build
-COPY ./client/build ./client
+WORKDIR /build/server
 
 # Copy backend source
 COPY ./server .
 
-# Build the application
-RUN go build -o tinylytics .
+# Download Go modules and build
+RUN go mod download && go build -o tinylytics .
 
-# Runtime stage - minimal Debian image (glibc compatible)
+# Runtime stage
 FROM debian:bookworm-slim
 
 # Install runtime dependencies
@@ -43,9 +32,10 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy binary and client from builder
-COPY --from=builder /app/tinylytics .
-COPY --from=builder /app/client ./client
+# Copy from the new path
+COPY --from=builder /build/server/tinylytics .
+COPY --from=builder /build/server/static ./static
+COPY --from=builder /build/server/templates ./templates
 
 EXPOSE 8080
 

@@ -1,0 +1,30 @@
+{{define "summary.html"}}
+<div class="grid-item-x1">
+  <app-window title="Sessions">
+    <div class="sunken-panel summary-card">
+      {{if .Summary}}{{.Summary.Sessions}}{{else}}Loading...{{end}}
+    </div>
+  </app-window>
+</div>
+<div class="grid-item-x1">
+  <app-window title="Page Views">
+    <div class="sunken-panel summary-card">
+      {{if .Summary}}{{.Summary.PageViews}}{{else}}Loading...{{end}}
+    </div>
+  </app-window>
+</div>
+<div class="grid-item-x1">
+  <app-window title="Bounce Rate">
+    <div class="sunken-panel summary-card">
+      {{if .Summary}}{{.Summary.BounceRate}}%{{else}}Loading...{{end}}
+    </div>
+  </app-window>
+</div>
+<div class="grid-item-x1">
+  <app-window title="Avg. Session Duration">
+    <div class="sunken-panel summary-card">
+      {{if .Summary}}{{.Summary.AvgSessionDuration}}{{else}}Loading...{{end}}
+    </div>
+  </app-window>
+</div>
+{{end}}

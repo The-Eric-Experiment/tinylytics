@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"os"
 	"path/filepath"
@@ -15,7 +16,6 @@ import (
 	"tinylytics/routes"
 	"tinylytics/ua"
 
-	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 )
 
@@ -68,6 +68,37 @@ func init() {
 func main() {
 	router := gin.Default()
 
+	// Load HTML templates with custom functions
+	router.SetFuncMap(template.FuncMap{
+		"jsonItems": routes.JSONItems,
+		"dict": func(values ...interface{}) (map[string]interface{}, error) {
+			if len(values)%2 != 0 {
+				return nil, fmt.Errorf("dict: number of arguments must be even")
+			}
+			dict := make(map[string]interface{}, len(values)/2)
+			for i := 0; i < len(values); i += 2 {
+				key, ok := values[i].(string)
+				if !ok {
+					return nil, fmt.Errorf("dict: keys must be strings")
+				}
+				dict[key] = values[i+1]
+			}
+			return dict, nil
+		},
+		"seq": func(n int) []int {
+			result := make([]int, n)
+			for i := range result {
+				result[i] = i
+			}
+			return result
+		},
+	})
+	router.LoadHTMLGlob("templates/*.html")
+
+	// Serve static files (CSS, JS, images)
+	router.Static("/static", "./static")
+
+	// API routes for event tracking
 	api := router.Group("/api")
 	{
 		api.POST("/event", routes.PostEvent(&eventQueue))
@@ -80,11 +111,17 @@ func main() {
 		api.GET("/:domain/referrers", routes.GetReferrers)
 	}
 
-	// I don't like this, maybe change to echo
-	router.Use(static.Serve("/", static.LocalFile("./client", true)))
-	router.NoRoute(func(c *gin.Context) {
-		c.File("./client/index.html")
-	})
+	// HTML template routes using query params to avoid greedy route matching
+	router.GET("/", routes.GetAnalyticsPage)
+	router.GET("/analytics", routes.GetAnalyticsPage)
+
+	// HTML fragment routes for HTMX (using same endpoints as API but with Accept header or query param)
+	router.GET("/summary-cards", routes.GetSummaries)
+	router.GET("/browsers-table", routes.GetBrowsers)
+	router.GET("/os-table", routes.GetOSs)
+	router.GET("/pages-table", routes.GetPages)
+	router.GET("/referrers-table", routes.GetReferrers)
+	router.GET("/countries-table", routes.GetCountries)
 
 	eventQueue.Listen(event.ProcessEvent)
 

@@ -1,0 +1,46 @@
+{{if .PreviousFilters}}
+<div class="previous-filters">
+  {{range $i, $f := .PreviousFilters}}{{if $i}}, {{end}}{{$f}}{{end}}
+</div>
+{{end}}
+<div class="countries-row">
+  <div class="sunken-panel">
+    <div class="map-container">
+      <world-map geo-url="/static/worldmap.json">
+        {{range .MapItems}}
+        <country iso="{{.Value}}" count="{{.Count}}"></country>
+        {{end}}
+      </world-map>
+    </div>
+  </div>
+  <div class="sunken-panel">
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Name</th>
+          <th>Sessions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Items}}
+        <tr
+          {{if
+          .IsClickable}}class="clickable"
+          hx-get="/?site={{$.Domain}}&p={{$.CurrentPeriod}}&{{.FilterKey}}={{.FilterValue}}{{$.QueryString}}"
+          hx-target="body"
+          hx-swap="outerHTML"
+          hx-push-url="true"
+          {{end}}
+        >
+          <td style="text-align: center; width: 20px">
+            <span class="fi fi-{{.CountryCode}}" title="{{.Value}}"></span>
+          </td>
+          <td>{{.CountryName}}</td>
+          <td style="text-align: right; width: 50px">{{.Count}}</td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+</div>

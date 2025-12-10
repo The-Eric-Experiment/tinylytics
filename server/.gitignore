@@ -19,3 +19,11 @@ config.yaml
 data/
 client/
 tinylytics/
+
+# Node.js dependencies and build artifacts
+node_modules/
+package-lock.json
+.parcel-cache/
+# Built files (source files in web/src/ are tracked)
+static/js/index.js
+static/js/index.js.map

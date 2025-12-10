@@ -1,0 +1,50 @@
+{{define "filter-bar.html"}}
+<div class="window" id="filter-bar">
+  <div class="toolbar window-padding">
+    <div class="selects-group">
+      <select
+        name="period"
+        onchange="window.location.href = window.location.pathname + '?' + new URLSearchParams({...Object.fromEntries(new URLSearchParams(window.location.search)), p: this.value}).toString()"
+      >
+        {{range .Periods}}
+        <option
+          value="{{.Value}}"
+          {{if
+          eq
+          .Value
+          $.CurrentPeriod}}selected{{end}}
+        >
+          {{.Label}}
+        </option>
+        {{end}}
+      </select>
+
+      <select
+        name="website"
+        onchange="window.location.href = '/?site=' + this.value"
+      >
+        {{range .Websites}}
+        <option value="{{.Domain}}" {{if eq .Domain $.Domain}}selected{{end}}>
+          {{.Title}}
+        </option>
+        {{end}}
+      </select>
+    </div>
+
+    <div class="active-filters">
+      {{range .ActiveFilters}}
+      <button
+        type="button"
+        hx-get="/?{{.RemoveQuery}}"
+        hx-target="body"
+        hx-swap="outerHTML"
+        hx-push-url="true"
+      >
+        {{.Name}} is <span class="bold">{{.Value}}</span>
+        <img src="/static/images/icons/remove.png" alt="remove" />
+      </button>
+      {{end}}
+    </div>
+  </div>
+</div>
+{{end}}
