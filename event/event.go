@@ -2,6 +2,7 @@ package event
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"strings"
 	"time"
@@ -39,19 +40,16 @@ type EventData struct {
 }
 
 func ProcessEvent(item *ClientInfo) {
-	databaseFileName, err := helpers.GetDatabaseFileName(item.Domain)
-	if err != nil {
-		panic(err)
-	}
-
 	if crawlerdetect.IsCrawler(item.UserAgent) {
 		fmt.Println("crawler detected", item.UserAgent)
 		return
 	}
 
-	database := db.Database{}
-	database.Connect(databaseFileName)
-	defer database.Close()
+	database, err := db.GetDatabaseByDomain(item.Domain)
+	if err != nil {
+		log.Printf("ERROR: Failed to get database for domain %s: %v", item.Domain, err)
+		return
+	}
 
 	fmt.Println("processing", item)
 
@@ -61,7 +59,8 @@ func ProcessEvent(item *ClientInfo) {
 
 	country := geo.GetGeo(item.IP)
 
-	session := database.GetUserSession(userIdent)
+	// Use item.Time (event timestamp) instead of processing time to correctly match sessions
+	session := database.GetUserSessionAtTime(userIdent, item.Time)
 
 	if session == nil {
 		referrerDomain, referrerFullPath := helpers.FilterReferrer(item.Referer, item.Domain)

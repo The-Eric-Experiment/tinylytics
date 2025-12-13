@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"strings"
+	"sync"
 	"time"
 	"tinylytics/constants"
 	"tinylytics/helpers"
@@ -17,9 +18,44 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+// AnalyticsItem represents a single analytics result item
+// This avoids circular dependency with the analytics package
+type AnalyticsItem struct {
+	Value     string
+	Count     int64
+	Drillable int64
+}
+
 type Database struct {
-	sqlite *gorm.DB // SQLite with GORM (stable driver)
-	duckdb *sql.DB  // DuckDB with raw database/sql (no GORM)
+	sqlite *gorm.DB     // SQLite with GORM (stable driver)
+	duckdb *sql.DB      // DuckDB with raw database/sql (no GORM)
+	mu     sync.RWMutex // Mutex for thread-safe operations
+}
+
+// queryAnalyticsItems executes a query and reads all rows into memory
+// Must be called while holding the database lock
+func (d *Database) queryAnalyticsItems(query string, args ...interface{}) ([]*AnalyticsItem, error) {
+	rows, err := d.duckdb.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := make([]*AnalyticsItem, 0)
+	for rows.Next() {
+		var item AnalyticsItem
+		if err := rows.Scan(&item.Value, &item.Count, &item.Drillable); err != nil {
+			log.Printf("ERROR: Failed to scan row: %v", err)
+			continue
+		}
+		items = append(items, &item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return items, nil
 }
 
 func getFilterValue(input string) string {
@@ -224,7 +260,7 @@ func (d *Database) Initialize() {
 	}
 
 	// Migrate data from SQLite to DuckDB (one-time operation)
-	d.migrateDataToDuckDB()
+	// d.migrateDataToDuckDB()
 
 	// Data cleanup on both databases
 	d.sqlite.Exec("update user_sessions set referer = '(none)' where referer = ''")
@@ -434,9 +470,17 @@ func (d *Database) migrateDataToDuckDB() {
 }
 
 func (d *Database) GetUserSession(userIdent string) *UserSession {
-	now := time.Now().UTC()
-	minutes := time.Duration(-30) * time.Minute
-	sessionEnd := now.Add(minutes)
+	return d.GetUserSessionAtTime(userIdent, time.Now().UTC())
+}
+
+func (d *Database) GetUserSessionAtTime(userIdent string, eventTime time.Time) *UserSession {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	// Find sessions where the last event (session_end) was within 30 minutes of the current event time
+	// If session_end >= (eventTime - 30 minutes), then the gap is <= 30 minutes, so it's the same session
+	// If session_end < (eventTime - 30 minutes), then the gap is > 30 minutes, so it's a new session
+	cutoffTime := eventTime.Add(-30 * time.Minute)
 
 	// Use raw SQL for DuckDB
 	query := `
@@ -449,7 +493,7 @@ func (d *Database) GetUserSession(userIdent string) *UserSession {
 	`
 
 	var session UserSessionDuckDB
-	err := d.duckdb.QueryRow(query, userIdent, sessionEnd).Scan(
+	err := d.duckdb.QueryRow(query, userIdent, cutoffTime).Scan(
 		&session.ID, &session.CreatedAt, &session.UpdatedAt, &session.UserIdent,
 		&session.Browser, &session.BrowserMajor, &session.BrowserMinor, &session.BrowserPatch,
 		&session.OS, &session.OSMajor, &session.OSMinor, &session.OSPatch,
@@ -494,6 +538,9 @@ func (d *Database) GetUserSession(userIdent string) *UserSession {
 }
 
 func (d *Database) StartUserSession(item *UserSession) *UserSession {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
 	// Dual write: SQLite first (more reliable for writes), then DuckDB
 	if err := d.sqlite.Create(&item).Error; err != nil {
 		log.Printf("ERROR: Failed to write session to SQLite: %v", err)
@@ -524,6 +571,9 @@ func (d *Database) StartUserSession(item *UserSession) *UserSession {
 }
 
 func (d *Database) UpdateUserSession(item *UserSession) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
 	// Dual update: SQLite first, then DuckDB
 	if err := d.sqlite.Save(&item).Error; err != nil {
 		log.Printf("ERROR: Failed to update session in SQLite: %v", err)
@@ -555,6 +605,9 @@ func (d *Database) UpdateUserSession(item *UserSession) {
 }
 
 func (d *Database) SaveEvent(item *UserEvent, sessionId string) *UserEvent {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
 	item.Session = UserSession{ID: sessionId}
 
 	// Dual write: SQLite first, then DuckDB
@@ -583,6 +636,9 @@ func (d *Database) SaveEvent(item *UserEvent, sessionId string) *UserEvent {
 }
 
 func (d *Database) GetSessions(c *gin.Context) int64 {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	conditions, args := buildFilters(c, false) // No user_events table, so no page filter
 
 	query := fmt.Sprintf(`
@@ -602,6 +658,9 @@ func (d *Database) GetSessions(c *gin.Context) int64 {
 }
 
 func (d *Database) GetPageViews(c *gin.Context) int64 {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	conditions, args := buildFilters(c, false)
 
 	// Add pageview condition
@@ -633,6 +692,9 @@ func (d *Database) GetPageViews(c *gin.Context) int64 {
 }
 
 func (d *Database) GetAvgSessionDuration(c *gin.Context) float64 {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	conditions, args := buildFilters(c, false) // No user_events table, so no page filter
 
 	query := fmt.Sprintf(`
@@ -656,6 +718,9 @@ func (d *Database) GetAvgSessionDuration(c *gin.Context) float64 {
 }
 
 func (d *Database) GetBounceRate(c *gin.Context) int64 {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	conditions, args := buildFilters(c, false) // No user_events table, so no page filter
 
 	query := fmt.Sprintf(`
@@ -680,7 +745,10 @@ func (d *Database) GetBounceRate(c *gin.Context) int64 {
 	return int64(math.Round((bounces.Float64 / total.Float64) * 100))
 }
 
-func (d *Database) GetBrowsers(c *gin.Context) (*sql.Rows, error) {
+func (d *Database) GetBrowsers(c *gin.Context) ([]*AnalyticsItem, error) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	conditions, args := buildFilters(c, false) // No user_events table, so no page filter
 
 	_, hasBrowser := c.GetQuery("b")
@@ -745,10 +813,13 @@ func (d *Database) GetBrowsers(c *gin.Context) (*sql.Rows, error) {
 		}
 	}
 
-	return d.duckdb.Query(query, args...)
+	return d.queryAnalyticsItems(query, args...)
 }
 
-func (d *Database) GetOSs(c *gin.Context) (*sql.Rows, error) {
+func (d *Database) GetOSs(c *gin.Context) ([]*AnalyticsItem, error) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	conditions, args := buildFilters(c, false) // No user_events table, so no page filter
 
 	_, hasOS := c.GetQuery("os")
@@ -813,10 +884,13 @@ func (d *Database) GetOSs(c *gin.Context) (*sql.Rows, error) {
 		}
 	}
 
-	return d.duckdb.Query(query, args...)
+	return d.queryAnalyticsItems(query, args...)
 }
 
-func (d *Database) GetCountries(c *gin.Context) (*sql.Rows, error) {
+func (d *Database) GetCountries(c *gin.Context) ([]*AnalyticsItem, error) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	conditions, args := buildFilters(c, false) // No user_events table, so no page filter
 
 	query := fmt.Sprintf(`
@@ -830,10 +904,13 @@ func (d *Database) GetCountries(c *gin.Context) (*sql.Rows, error) {
 		ORDER BY count DESC
 	`, strings.Join(conditions, " AND "))
 
-	return d.duckdb.Query(query, args...)
+	return d.queryAnalyticsItems(query, args...)
 }
 
-func (d *Database) GetReferrers(c *gin.Context) (*sql.Rows, error) {
+func (d *Database) GetReferrers(c *gin.Context) ([]*AnalyticsItem, error) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	conditions, args := buildFilters(c, false) // No user_events table, so no page filter
 
 	_, hasReferrer := c.GetQuery("r")
@@ -868,10 +945,13 @@ func (d *Database) GetReferrers(c *gin.Context) (*sql.Rows, error) {
 		`, strings.Join(conditions, " AND "))
 	}
 
-	return d.duckdb.Query(query, args...)
+	return d.queryAnalyticsItems(query, args...)
 }
 
-func (d *Database) GetPages(c *gin.Context) (*sql.Rows, error) {
+func (d *Database) GetPages(c *gin.Context) ([]*AnalyticsItem, error) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	conditions, args := buildFilters(c, false)
 
 	// Add pageview condition
@@ -898,5 +978,5 @@ func (d *Database) GetPages(c *gin.Context) (*sql.Rows, error) {
 		LIMIT 20
 	`, strings.Join(allConditions, " AND "))
 
-	return d.duckdb.Query(query, allArgs...)
+	return d.queryAnalyticsItems(query, allArgs...)
 }

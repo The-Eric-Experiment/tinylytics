@@ -1,19 +1,15 @@
 package routes
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strings"
-	"tinylytics/analytics"
 	"tinylytics/config"
 	"tinylytics/db"
-	"tinylytics/helpers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -49,46 +45,16 @@ type ActiveFilter struct {
 }
 
 type AnalyticsItemWithIcon struct {
-	*analytics.AnalyticsItem `json:",inline"`
-	Icon                     string `json:"icon,omitempty"`
-	CountryName              string `json:"countryName,omitempty"`
-	CountryCode              string `json:"countryCode,omitempty"`
-	Label                    string `json:"label,omitempty"`
-	IsClickable              bool   `json:"isClickable,omitempty"`
-	FaviconURL               string `json:"faviconUrl,omitempty"`
-	FormattedValue           string `json:"formattedValue,omitempty"`
-	FilterKey                string `json:"filterKey,omitempty"`
-	FilterValue              string `json:"filterValue,omitempty"`
-}
-
-func arrayFromRows(rows *sql.Rows) []*analytics.AnalyticsItem {
-	if rows == nil {
-		log.Printf("ERROR: rows is nil in arrayFromRows")
-		return make([]*analytics.AnalyticsItem, 0)
-	}
-	defer rows.Close()
-
-	list := make([]*analytics.AnalyticsItem, 0)
-
-	for rows.Next() {
-		var output analytics.AnalyticsItem
-
-		// All analytics queries return: value, count, drillable
-		err := rows.Scan(&output.Value, &output.Count, &output.Drillable)
-		if err != nil {
-			log.Printf("ERROR: Failed to scan row: %v", err)
-			continue
-		}
-
-		list = append(list, &output)
-	}
-
-	// Check for errors from iteration
-	if err := rows.Err(); err != nil {
-		log.Printf("ERROR: Error iterating rows: %v", err)
-	}
-
-	return list
+	*db.AnalyticsItem `json:",inline"`
+	Icon              string `json:"icon,omitempty"`
+	CountryName       string `json:"countryName,omitempty"`
+	CountryCode       string `json:"countryCode,omitempty"`
+	Label             string `json:"label,omitempty"`
+	IsClickable       bool   `json:"isClickable,omitempty"`
+	FaviconURL        string `json:"faviconUrl,omitempty"`
+	FormattedValue    string `json:"formattedValue,omitempty"`
+	FilterKey         string `json:"filterKey,omitempty"`
+	FilterValue       string `json:"filterValue,omitempty"`
 }
 
 func getDB(c *gin.Context) *db.Database {
@@ -104,16 +70,13 @@ func getDB(c *gin.Context) *db.Database {
 
 	c.Params = append(c.Params, gin.Param{Key: "domain", Value: domain})
 
-	dbFile, err := helpers.GetDatabaseFileName(domain)
-
+	database, err := db.GetDatabaseByDomain(domain)
 	if err != nil {
-		c.String(http.StatusBadRequest, "", err)
+		c.String(http.StatusInternalServerError, "Failed to get database: %v", err)
 		return nil
 	}
 
-	database := db.Database{}
-	database.Connect(dbFile)
-	return &database
+	return database
 }
 
 // GetAnalyticsPage - main page handler
@@ -141,7 +104,6 @@ func GetSummaries(c *gin.Context) {
 	if database == nil {
 		return
 	}
-	defer database.Close()
 
 	sessions := database.GetSessions(c)
 	pageViews := database.GetPageViews(c)
@@ -172,15 +134,12 @@ func GetBrowsers(c *gin.Context) {
 	if database == nil {
 		return
 	}
-	defer database.Close()
 
-	rows, err := database.GetBrowsers(c)
+	items, err := database.GetBrowsers(c)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Couldn't get browsers")
 		return
 	}
-
-	items := arrayFromRows(rows)
 
 	previousFilters := make([]string, 0)
 	browser, hasBrowser := c.GetQuery("b")
@@ -218,15 +177,12 @@ func GetOSs(c *gin.Context) {
 	if database == nil {
 		return
 	}
-	defer database.Close()
 
-	rows, err := database.GetOSs(c)
+	items, err := database.GetOSs(c)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Couldn't get OSs")
 		return
 	}
-
-	items := arrayFromRows(rows)
 
 	previousFilters := make([]string, 0)
 	os, hasOs := c.GetQuery("os")
@@ -264,15 +220,12 @@ func GetCountries(c *gin.Context) {
 	if database == nil {
 		return
 	}
-	defer database.Close()
 
-	rows, err := database.GetCountries(c)
+	items, err := database.GetCountries(c)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Couldn't get Countries")
 		return
 	}
-
-	items := arrayFromRows(rows)
 
 	country, hasCountry := c.GetQuery("c")
 	previousFilters := make([]string, 0)
@@ -311,15 +264,12 @@ func GetReferrers(c *gin.Context) {
 	if database == nil {
 		return
 	}
-	defer database.Close()
 
-	rows, err := database.GetReferrers(c)
+	items, err := database.GetReferrers(c)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Couldn't get Referrers")
 		return
 	}
-
-	items := arrayFromRows(rows)
 
 	referrer, hasReferrer := c.GetQuery("r")
 	previousFilters := make([]string, 0)
@@ -352,15 +302,12 @@ func GetPages(c *gin.Context) {
 	if database == nil {
 		return
 	}
-	defer database.Close()
 
-	rows, err := database.GetPages(c)
+	items, err := database.GetPages(c)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Couldn't get Pages")
 		return
 	}
-
-	items := arrayFromRows(rows)
 
 	path, hasPath := c.GetQuery("pg")
 	previousFilters := make([]string, 0)
@@ -587,7 +534,7 @@ func formatDuration(seconds float64) string {
 	return fmt.Sprintf("%dm %ds", minutes, secs)
 }
 
-func processBrowserItems(items []*analytics.AnalyticsItem, browser, browserVersion string, previousFilters []string, hasMultipleItems bool) []*AnalyticsItemWithIcon {
+func processBrowserItems(items []*db.AnalyticsItem, browser, browserVersion string, previousFilters []string, hasMultipleItems bool) []*AnalyticsItemWithIcon {
 	result := make([]*AnalyticsItemWithIcon, len(items))
 	for i, item := range items {
 		icon := getBrowserIcon(item.Value)
@@ -613,7 +560,7 @@ func processBrowserItems(items []*analytics.AnalyticsItem, browser, browserVersi
 	return result
 }
 
-func processOSItems(items []*analytics.AnalyticsItem, os, osVersion string, previousFilters []string, hasMultipleItems bool) []*AnalyticsItemWithIcon {
+func processOSItems(items []*db.AnalyticsItem, os, osVersion string, previousFilters []string, hasMultipleItems bool) []*AnalyticsItemWithIcon {
 	result := make([]*AnalyticsItemWithIcon, len(items))
 	for i, item := range items {
 		label := getLabel(item, osVersion, previousFilters, false)
@@ -638,7 +585,7 @@ func processOSItems(items []*analytics.AnalyticsItem, os, osVersion string, prev
 	return result
 }
 
-func processPageItems(items []*analytics.AnalyticsItem, page string, previousFilters []string, hasMultipleItems bool) []*AnalyticsItemWithIcon {
+func processPageItems(items []*db.AnalyticsItem, page string, previousFilters []string, hasMultipleItems bool) []*AnalyticsItemWithIcon {
 	result := make([]*AnalyticsItemWithIcon, len(items))
 	for i, item := range items {
 		label := getLabel(item, "", previousFilters, true)
@@ -657,7 +604,7 @@ func processPageItems(items []*analytics.AnalyticsItem, page string, previousFil
 	return result
 }
 
-func processReferrerItems(items []*analytics.AnalyticsItem, referrer, referrerPath string, previousFilters []string, hasMultipleItems bool) []*AnalyticsItemWithIcon {
+func processReferrerItems(items []*db.AnalyticsItem, referrer, referrerPath string, previousFilters []string, hasMultipleItems bool) []*AnalyticsItemWithIcon {
 	result := make([]*AnalyticsItemWithIcon, len(items))
 	for i, item := range items {
 		label := getLabel(item, referrerPath, previousFilters, true)
@@ -683,7 +630,7 @@ func processReferrerItems(items []*analytics.AnalyticsItem, referrer, referrerPa
 	return result
 }
 
-func processCountryItems(items []*analytics.AnalyticsItem, country string, previousFilters []string, hasMultipleItems bool) []*AnalyticsItemWithIcon {
+func processCountryItems(items []*db.AnalyticsItem, country string, previousFilters []string, hasMultipleItems bool) []*AnalyticsItemWithIcon {
 	result := make([]*AnalyticsItemWithIcon, len(items))
 	for i, item := range items {
 		label := getLabel(item, "", previousFilters, true)
@@ -749,7 +696,7 @@ func getBrowserIcon(browser string) string {
 	return "unknown"
 }
 
-func getLabel(item *analytics.AnalyticsItem, secondaryFilter string, previousFilters []string, showSelfWhenEmpty bool) string {
+func getLabel(item *db.AnalyticsItem, secondaryFilter string, previousFilters []string, showSelfWhenEmpty bool) string {
 	if secondaryFilter != "" && len(previousFilters) > 1 {
 		parts := append(previousFilters[1:], item.Value)
 		filtered := []string{}
@@ -774,7 +721,7 @@ func getLabel(item *analytics.AnalyticsItem, secondaryFilter string, previousFil
 	return item.Value
 }
 
-func getFilterValue(item *analytics.AnalyticsItem, secondaryFilter string, previousFilters []string) string {
+func getFilterValue(item *db.AnalyticsItem, secondaryFilter string, previousFilters []string) string {
 	if secondaryFilter != "" && len(previousFilters) >= 1 {
 		parts := append(previousFilters[1:], item.Value)
 		filtered := []string{}

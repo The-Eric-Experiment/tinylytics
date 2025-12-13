@@ -1,18 +1,22 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"log"
+	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime"
+	"syscall"
+	"time"
 	"tinylytics/config"
 	conf "tinylytics/config"
 	"tinylytics/db"
 	"tinylytics/event"
 	"tinylytics/geo"
-	"tinylytics/helpers"
 	"tinylytics/routes"
 	"tinylytics/ua"
 
@@ -21,24 +25,15 @@ import (
 
 var eventQueue = event.EventQueue{}
 
-func initializeDb(filename string) {
-	database := db.Database{}
-	database.Connect(filename)
-	defer database.Close()
-	database.Initialize()
-}
-
 func initializeDatabases() {
+	domains := make([]string, 0, len(conf.Config.Websites))
 	for _, element := range conf.Config.Websites {
-		filename, err := helpers.GetDatabaseFileName(element.Domain)
-
-		if err != nil {
-			panic(err)
-		}
-
 		fmt.Println("Initializing database for domain: ", element.Domain)
+		domains = append(domains, element.Domain)
+	}
 
-		initializeDb(filename)
+	if err := db.InitializeAllDatabases(domains); err != nil {
+		panic(err)
 	}
 }
 
@@ -125,7 +120,39 @@ func main() {
 
 	eventQueue.Listen(event.ProcessEvent)
 
-	router.Run("0.0.0.0:8099")
+	// Create HTTP server
+	srv := &http.Server{
+		Addr:    "0.0.0.0:8099",
+		Handler: router,
+	}
+
+	// Start server in a goroutine
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Failed to start server: %v", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutting down server...")
+
+	// Give outstanding requests a deadline for completion
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Shutdown HTTP server
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	// Close all database connections
+	log.Println("Closing database connections...")
+	db.CloseAll()
+
+	log.Println("Server exited")
 }
 
 // PrintMemUsage outputs the current, total and OS memory being used. As well as the number
