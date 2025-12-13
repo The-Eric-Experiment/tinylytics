@@ -167,7 +167,7 @@ func (d *Database) Connect(file string) {
 
 	// Connect to SQLite (existing database) with GORM
 	sqliteDB, err := gorm.Open(sqlite.Open("file:"+file+"?cache=shared&mode=rwc&_journal_mode=WAL&_timeout=30000"), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Silent), // Disable GORM logs
 	})
 
 	if err != nil {
@@ -565,8 +565,10 @@ func (d *Database) StartUserSession(item *UserSession) *UserSession {
 	if err != nil {
 		log.Printf("WARNING: Session %s saved to SQLite but failed to write to DuckDB: %v", item.ID, err)
 		// Don't panic - data is in SQLite, can be synced later
+		return item
 	}
 
+	log.Printf("[DB] Session written successfully: id=%s domain=%s events=%d (SQLite + DuckDB)", item.ID, item.UserIdent, item.Events)
 	return item
 }
 
@@ -601,7 +603,10 @@ func (d *Database) UpdateUserSession(item *UserSession) {
 	if err != nil {
 		log.Printf("WARNING: Session %s updated in SQLite but failed to update in DuckDB: %v", item.ID, err)
 		// Don't panic - data is in SQLite
+		return
 	}
+
+	log.Printf("[DB] Session updated successfully: id=%s events=%d session_end=%s (SQLite + DuckDB)", item.ID, item.Events, item.SessionEnd.Format("2006-01-02 15:04:05"))
 }
 
 func (d *Database) SaveEvent(item *UserEvent, sessionId string) *UserEvent {
@@ -630,8 +635,10 @@ func (d *Database) SaveEvent(item *UserEvent, sessionId string) *UserEvent {
 	if err != nil {
 		log.Printf("WARNING: Event %s saved to SQLite but failed to write to DuckDB: %v", item.ID, err)
 		// Don't panic - data is in SQLite
+		return item
 	}
 
+	log.Printf("[DB] Event written successfully: id=%s session_id=%s page=%s (SQLite + DuckDB)", item.ID, sessionId, item.Page)
 	return item
 }
 

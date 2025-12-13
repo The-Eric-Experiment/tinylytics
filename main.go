@@ -13,7 +13,6 @@ import (
 	"syscall"
 	"time"
 	"tinylytics/config"
-	conf "tinylytics/config"
 	"tinylytics/db"
 	"tinylytics/event"
 	"tinylytics/geo"
@@ -26,8 +25,8 @@ import (
 var eventQueue = event.EventQueue{}
 
 func initializeDatabases() {
-	domains := make([]string, 0, len(conf.Config.Websites))
-	for _, element := range conf.Config.Websites {
+	domains := make([]string, 0, len(config.Config.Websites))
+	for _, element := range config.Config.Websites {
 		fmt.Println("Initializing database for domain: ", element.Domain)
 		domains = append(domains, element.Domain)
 	}
@@ -38,7 +37,15 @@ func initializeDatabases() {
 }
 
 func init() {
-	conf.LoadConfig("config.yaml")
+	// Ensure logging is enabled and configured
+	// By default, log package writes to stderr with timestamps
+	// This ensures logs are visible (not redirected to /dev/null)
+	// Ensure logging outputs to stderr (standard for production)
+	// This ensures logs are visible even if stdout is redirected
+	log.SetOutput(os.Stderr)
+	log.SetFlags(log.LstdFlags | log.Lshortfile) // Include timestamp and file:line
+
+	config.LoadConfig("config.yaml")
 
 	wd, err := os.Getwd()
 	if err != nil {

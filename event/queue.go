@@ -86,10 +86,11 @@ func (q *EventQueue) Connect() {
 // Events are processed in order: peek, handle, pop, repeat.
 // This ensures no parallel processing of queue events.
 func (q *EventQueue) Listen(handler func(item *ClientInfo)) {
+	log.Println("Queue listener started - waiting for events...")
 	go func() {
 		for {
 			b := q.Peek()
-			log.Printf("Picked up event from queue: domain=%s page=%s IP=%s", b.Domain, b.Page, b.IP)
+			log.Printf("[QUEUE] Picked up event: domain=%s page=%s IP=%s UserAgent=%s", b.Domain, b.Page, b.IP, b.UserAgent)
 			// Process event synchronously - handler must complete before next event
 			handler(b)
 			q.Pop()
