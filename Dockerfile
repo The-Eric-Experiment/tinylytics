@@ -20,9 +20,7 @@ WORKDIR /build
 COPY . .
 
 # Download Go modules and build
-RUN go mod download && \
-    go build -v -o tinylytics . || \
-    (echo "Build failed with exit code: $?" && exit 1)
+RUN go mod download && go build -o tinylytics .
 
 # Runtime stage
 FROM debian:bookworm-slim

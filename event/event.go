@@ -1,6 +1,7 @@
 package event
 
 import (
+	"fmt"
 	"log"
 	"net/url"
 	"strings"
@@ -40,7 +41,7 @@ type EventData struct {
 
 func ProcessEvent(item *ClientInfo) {
 	if crawlerdetect.IsCrawler(item.UserAgent) {
-		log.Printf("[QUEUE] Crawler detected - skipping: %s", item.UserAgent)
+		fmt.Println("crawler detected", item.UserAgent)
 		return
 	}
 
@@ -50,7 +51,7 @@ func ProcessEvent(item *ClientInfo) {
 		return
 	}
 
-	log.Printf("[QUEUE] Processing event: domain=%s page=%s IP=%s", item.Domain, item.Page, item.IP)
+	fmt.Println("processing", item)
 
 	userIdent := GetSessionUserIdent(item)
 
